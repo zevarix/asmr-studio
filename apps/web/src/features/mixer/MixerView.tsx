@@ -13,6 +13,7 @@ import {useLoopEditorAudio} from './useLoopEditorAudio.js';
 import type {LoopAudioService} from './loop-audio-service.js';
 import IconVolume from '@tabler/icons-react/icons/IconVolume';
 import {SessionName} from './SessionName.js';
+import {AppearanceControls} from '../appearance/AppearanceControls.js';
 
 export interface MixerViewProps {
   scene:Scene;
@@ -46,7 +47,7 @@ export function MixerView({scene,playback,onCommand,onStart,onPause,onStop,asset
     {mixActive,stopToken:previewStopToken,onPreviewStart:()=>libraryPreviewStop.current?.()});
   return <main className="listening-room">
     <header className="room-heading"><div><p className="eyebrow">Personal listening room</p><h1>ASMR Studio</h1>
-      <p>Layer your favorite sounds. Make the room your own.</p></div></header>
+      <p>Layer your favorite sounds. Make the room your own.</p></div><AppearanceControls/></header>
     <section className="session" aria-label="Current session">
       <div className="session-title"><SessionName key={scene.id} title={scene.title} onRename={onRename}/>{sessionTools}</div>
       <div className="session-playback"><Transport playback={playback} hasLayers={scene.layers.length>0&&canStart} onStart={onStart} onPause={onPause} onStop={onStop}/>

@@ -15,6 +15,10 @@ Each layer supports volume, stereo position, mute, solo, and adjustable looping.
 Adding and removing sounds while listening preserves the other layers and the
 playback clock. Name, save, copy, and reopen sessions from the app.
 
+Open **Appearance** beside the studio heading to choose Sage, Ocean, Amethyst,
+Ember, Rose, or Graphite. Each theme coordinates the panels, knobs, and faders;
+your choice is remembered in this browser. See [studio appearance](docs/interface.md#appearance).
+
 Shape the whole mix with the Bass, Mid, and Treble knobs in **Master equalizer**,
 or open **Equalizer** on a single layer. Tone settings stay with the saved session
 and carry through to exported WAVs. See [using the equalizer](docs/equalizer.md).

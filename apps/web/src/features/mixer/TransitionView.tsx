@@ -11,6 +11,7 @@ import {OutputControls,type OutputMeterSource} from './OutputControls.js';
 import {RangeInput} from './RangeInput.js';
 import {SessionName} from './SessionName.js';
 import {Transport,formatTime} from './Transport.js';
+import {AppearanceControls} from '../appearance/AppearanceControls.js';
 import './TransitionView.css';
 
 export type TransitionDeck='a'|'b';
@@ -98,7 +99,7 @@ export function TransitionView({scene,savedScenes,deckStates,playback,outputMete
   const moving=transition.mode==='timed'&&(phase==='running'||phase==='waiting');
   const sources=savedScenes.filter(item=>item.kind!=='transition');
   return <main className="listening-room transition-room">
-    <header className="room-heading"><div><p className="eyebrow">Personal listening room</p><h1>ASMR Studio</h1><p>Move gently between two saved mixes.</p></div></header>
+    <header className="room-heading"><div><p className="eyebrow">Personal listening room</p><h1>ASMR Studio</h1><p>Move gently between two saved mixes.</p></div><AppearanceControls/></header>
     <section className="session" aria-label="Current transition arrangement">
       <div className="session-title"><SessionName key={scene.id} title={scene.title} onRename={onRename}/>{sessionTools}</div>
       <div className="session-playback"><Transport playback={playback} hasLayers={sceneLayerCount(scene)>0&&canStart}

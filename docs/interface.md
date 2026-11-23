@@ -1,9 +1,27 @@
 # Studio interface
 
-The interface uses a dark green studio palette. Raised controls sit above recessed
+The interface offers six coordinated dark studio themes. Raised controls sit above recessed
 tracks and quiet panels; the strongest emphasis belongs to the current action or
 setting. The equalizer's shaded dials establish the material and lighting for the
 rest of the controls.
+
+## Appearance
+
+Open **Appearance** beside the studio heading to choose Sage, Ocean, Amethyst,
+Ember, Rose, or Graphite. Sage is the original green palette. Each choice updates
+the accents, panels, dials, fader caps, and other materials together. The picker
+shows named previews and the selected theme; keyboard users can move between
+choices with the arrow keys and close the picker with Escape.
+
+The choice takes effect immediately and stays in this browser after reloading.
+It also follows you between mixes and transition arrangements. Appearance is a
+browser preference, separate from saved audio settings: changing it does not
+alter a mix, restart playback, or change an export. If browser storage is
+unavailable, themes still work for the current page. Missing or unrecognized
+saved preferences use Sage.
+
+Output meter colors, warnings, errors, and focus indicators keep their meaning
+across themes. They are not recolored as decorative accents.
 
 ## Controls
 
@@ -44,7 +62,10 @@ disabled and inactive states.
 
 ## Implementation
 
-Shared panel, button, form and card styling lives in `apps/web/src/styles.css`.
+Theme palettes and material tokens live in
+`apps/web/src/features/appearance/themes.css`; the picker and browser preference
+live alongside them. Shared panel, button, form and card styling lives in
+`apps/web/src/styles.css`.
 `RangeInput` owns ordinary fader variants. Feature styles own meters, waveform
 handles, transition details and other specialized controls. Use CSS and SVG
 already supported by the app; no image assets or new dependencies are needed.

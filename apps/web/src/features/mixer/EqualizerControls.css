@@ -49,17 +49,17 @@
 .eq-knob-value-arc { stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
 .eq-knob-tick { stroke: var(--control-border); stroke-width: 1; stroke-linecap: round; }
 .eq-knob-neutral { stroke: var(--muted); stroke-width: 1.7; stroke-linecap: round; }
-.eq-knob-shadow { fill: #080f0b; opacity: .5; }
-.eq-knob-rim { stroke: #101a14; stroke-width: 1; }
-.eq-knob-rim-light { stop-color: #7c9280; }
-.eq-knob-rim-mid { stop-color: #405648; }
-.eq-knob-rim-dark { stop-color: #101a14; }
-.eq-knob-grip { stroke: #122118; stroke-width: 1.5; stroke-dasharray: 1 3.4; opacity: .65; }
-.eq-knob-face { stroke: #93ad9b; stroke-opacity: .22; stroke-width: .7; }
-.eq-knob-face-light { stop-color: #4b6051; }
-.eq-knob-face-mid { stop-color: #2e4035; }
-.eq-knob-face-dark { stop-color: #1b2a21; }
-.eq-knob-indicator-shadow { stroke: #102017; stroke-width: 5; stroke-linecap: round; }
+.eq-knob-shadow { fill: var(--knob-shadow); opacity: .5; }
+.eq-knob-rim { stroke: var(--knob-rim-dark); stroke-width: 1; }
+.eq-knob-rim-light { stop-color: var(--knob-rim-light); }
+.eq-knob-rim-mid { stop-color: var(--knob-rim-mid); }
+.eq-knob-rim-dark { stop-color: var(--knob-rim-dark); }
+.eq-knob-grip { stroke: var(--knob-grip); stroke-width: 1.5; stroke-dasharray: 1 3.4; opacity: .65; }
+.eq-knob-face { stroke: var(--knob-face-border); stroke-opacity: .22; stroke-width: .7; }
+.eq-knob-face-light { stop-color: var(--knob-face-light); }
+.eq-knob-face-mid { stop-color: var(--knob-face-mid); }
+.eq-knob-face-dark { stop-color: var(--knob-face-dark); }
+.eq-knob-indicator-shadow { stroke: var(--knob-indicator-shadow); stroke-width: 5; stroke-linecap: round; }
 .eq-knob-indicator { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
 .eq-knob-input:disabled + .eq-knob-visual { opacity: .42; }
 .eq-value { display: block; margin-top: .1rem; font-size: .93rem; line-height: 1.5; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }

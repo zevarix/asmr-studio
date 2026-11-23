@@ -7,7 +7,7 @@
   border: 1px solid var(--control-border);
   border-radius: 9px;
   background: var(--well-fill, var(--inset));
-  box-shadow: inset 0 2px 7px #0005, 0 1px 0 var(--edge-light, #d9efd113);
+  box-shadow: inset 0 2px 7px #0005, 0 1px 0 var(--edge-light);
 }
 .loop-waveform > svg {
   position: absolute;
@@ -17,7 +17,7 @@
   pointer-events: none;
 }
 .loop-waveform-selection { fill: var(--selected); fill-opacity: .8; }
-.loop-waveform-overlap { fill: #6c9577; fill-opacity: .65; }
+.loop-waveform-overlap { fill: var(--waveform-overlap); fill-opacity: .65; }
 .loop-waveform-axis { stroke: var(--control-border); stroke-opacity: .55; }
 .loop-waveform-peaks { stroke: var(--accent); stroke-width: .8px; }
 .loop-waveform-marker { stroke: var(--accent); }
@@ -68,8 +68,8 @@
   padding-block: .22rem;
   border: 1px solid var(--accent);
   border-radius: 5px;
-  background: linear-gradient(180deg, #dae9d2, var(--accent) 45%, #9fb797);
-  box-shadow: inset 0 1px 0 #f0f8e977, 0 2px 3px #0006;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent) 45%, var(--accent-dark));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 47%, transparent), 0 2px 3px #0006;
   color: var(--accent-ink);
   font-size: .67rem;
   font-weight: 650;
