@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+test('two editors cannot overwrite the same saved revision; the loser keeps its work',async ({browser})=>{
+  const context=await browser.newContext();
+  const a=await context.newPage();
+  await a.goto('/?scene=two-editor-conflict');
+  await a.getByRole('button',{name:'Save session'}).click();
+  await expect(a.getByText('Saved revision 1')).toBeVisible();
+  const b=await context.newPage();
+  await b.goto('/?scene=two-editor-conflict');
+  await expect(b.getByText('Saved revision 1')).toBeVisible();
+  await a.getByRole('slider',{name:'Master volume'}).fill('35');
+  await a.getByRole('button',{name:'Save session'}).click();
+  await expect(a.getByText('Saved revision 2')).toBeVisible();
+  await b.getByRole('slider',{name:'Master volume'}).fill('70');
+  await b.getByRole('button',{name:'Save session'}).click();
+  await expect(b.getByText(/Another editor saved a newer revision/i)).toBeVisible();
+  await expect(b.getByRole('slider',{name:'Master volume'})).toHaveValue('70');
+  const canonical=await a.request.get('/api/scenes/two-editor-conflict');
+  expect(canonical.ok()).toBeTruthy();
+  expect((await canonical.json()).masterGain).toBe(.35);
+  await b.getByRole('button',{name:'Save a copy'}).click();
+  await expect(b.getByText('Saved revision 1')).toBeVisible();
+  await expect(b.getByRole('slider',{name:'Master volume'})).toHaveValue('70');
+  const after=await a.request.get('/api/scenes/two-editor-conflict');
+  expect((await after.json()).masterGain).toBe(.35);
+  await context.close();
+});

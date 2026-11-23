@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "brush",
+      "title": "Mic foam brushing",
+      "creator": "salemaudio",
+      "filename": "brush-hq-preview.mp3",
+      "sha256": "7d9669dad6353026b434832eb84c407a3bd2b958b5baaf4de4507d840d277be8",
+      "sourceUrl": "https://freesound.org/people/salemaudio/sounds/803595/",
+      "downloadUrl": "https://cdn.freesound.org/previews/803/803595_17274093-hq.mp3",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceForm": "Public HQ MP3 preview, not the creator's original WAV",
+      "startSeconds": 6,
+      "sourceDurationSeconds": 6,
+      "commonGainDb": 0
+    },
+    {
+      "id": "cardboard-tapping",
+      "title": "Cardboard tapping",
+      "creator": "madamdata",
+      "filename": "cardboard-tapping-hq-preview.mp3",
+      "sha256": "3206371c5e994c480f437c5295dd609dd6d251830c4696814894957cce487324",
+      "sourceUrl": "https://freesound.org/people/madamdata/sounds/716591/",
+      "downloadUrl": "https://cdn.freesound.org/previews/716/716591_4967224-hq.mp3",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceForm": "Public HQ MP3 preview, not the creator's original WAV",
+      "startSeconds": 0,
+      "sourceDurationSeconds": 6,
+      "commonGainDb": 6
+    }
+  ]
+}

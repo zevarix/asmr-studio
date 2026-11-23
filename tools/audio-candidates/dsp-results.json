@@ -1,0 +1,2228 @@
+{
+  "purpose": "Candidate feasibility observations, not application acceptance or a listening judgment",
+  "baselineCommit": "d9ff89b48bcf4da6935e7905f6af61adf4c12148",
+  "testedDependencyCheckoutTree": "7c37d192effb299d22f6cb2feeef8c4cc9ba69c4",
+  "scripts": [
+    {
+      "filename": "dsp-feasibility.mjs",
+      "sha256": "46206c97db97eafe12e2429ed7a9f731467f7fdf31d9aecc71093ff9303c1c78"
+    },
+    {
+      "filename": "dsp-feasibility-v2.mjs",
+      "sha256": "e75cd15dc4197d9dd223be0ff459488cea1b855651ffa77fa26cbacc9fda755b"
+    }
+  ],
+  "runs": [
+    {
+      "experimentVersion": 1,
+      "status": "completed",
+      "startedAt": "2026-11-19T01:23:37.897Z",
+      "finishedAt": "2026-11-19T01:23:40.586Z",
+      "node": "v22.23.3",
+      "platform": "win32",
+      "source": {
+        "repositoryCommit": "5d81381b19209c2cdf32f48756dadc6af0062d8f",
+        "repoUsedOnlyFor": "existing Playwright package"
+      },
+      "browser": "159.0.8154.6",
+      "ffmpeg": "ffmpeg version 9.0.2-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+      "sampleRate": 48000,
+      "inputFrames": 96000,
+      "thresholds": {
+        "maxErrorPcm16": 3,
+        "rmsErrorPcm16": 0.75
+      },
+      "comparison": "FFmpeg PCM16 against native Float32, both scaled in PCM16 steps; no alignment, normalization, or threshold adjustment",
+      "fixtures": [
+        {
+          "name": "broadband",
+          "frames": 96000,
+          "channels": 2,
+          "encoding": "signed PCM16 little-endian, interleaved",
+          "sha256": "16c686b8e64db7c8991e7a99e82d24d8cfe7b156a4ab080ff6b0a7200395a7b7",
+          "bytes": 384000
+        },
+        {
+          "name": "impulses",
+          "frames": 96000,
+          "channels": 2,
+          "encoding": "signed PCM16 little-endian, interleaved",
+          "sha256": "ac63974fe885111ffd0d7d78f2873023793a9c5d55a7e088e1d7f42cc7a6941f",
+          "bytes": 384000
+        },
+        {
+          "name": "tones",
+          "frames": 96000,
+          "channels": 2,
+          "encoding": "signed PCM16 little-endian, interleaved",
+          "sha256": "5b426e7750981b0e4870ca16a205f750c7ba316cc2964584ab6bfc512e312b31",
+          "bytes": 384000
+        }
+      ],
+      "summary": {
+        "identity": {
+          "cases": 3,
+          "withinThresholds": 3,
+          "maxErrorPcm16": 0,
+          "maxRmsErrorPcm16": 0
+        },
+        "highpass": {
+          "cases": 6,
+          "withinThresholds": 2,
+          "maxErrorPcm16": 3964,
+          "maxRmsErrorPcm16": 104.35963068267739
+        },
+        "speed": {
+          "cases": 6,
+          "withinThresholds": 0,
+          "maxErrorPcm16": 7183.9765625,
+          "maxRmsErrorPcm16": 1022.0003793900167
+        }
+      },
+      "cleanup": {
+        "browserClosed": true,
+        "ffmpegChildren": 0
+      },
+      "cases": [
+        {
+          "fixture": "broadband",
+          "name": "identity",
+          "kind": "identity",
+          "parameters": null,
+          "nativeParameters": {
+            "playbackRate": 1
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.25982666015625,
+              "actualPeak": 0.25982666015625
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.22979736328125,
+              "actualPeak": 0.22979736328125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.25982666015625,
+                "actualPeak": 0.25982666015625
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.22979736328125,
+                "actualPeak": 0.22979736328125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "highpass-40",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999931461237134,
+              "b1": -1.9999862922474267,
+              "b2": 0.9999931461237134,
+              "a0": 1.003702385516068,
+              "a1": -1.9999725844948535,
+              "a2": 0.9962976144839321
+            }
+          },
+          "nativeParameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "detune": 0
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.003702385516068:a1=-1.9999725844948535:a2=0.9962976144839321:b0=0.9999931461237134:b1=-1.9999862922474267:b2=0.9999931461237134:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 1616,
+              "rmsErrorPcm16": 40.84802507501373,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.2644321918487549,
+              "actualPeak": 0.264434814453125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 1705,
+              "rmsErrorPcm16": 47.50774658434629,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.24697791039943695,
+              "actualPeak": 0.246978759765625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.92822265625,
+                "rmsErrorPcm16": 0.32591588613046746,
+                "worstFrame": 65733,
+                "worstAtSeconds": 1.3694375,
+                "referencePeak": 0.2644321918487549,
+                "actualPeak": 0.264434814453125
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.998046875,
+                "rmsErrorPcm16": 0.32414035452024903,
+                "worstFrame": 42106,
+                "worstAtSeconds": 0.8772083333333334,
+                "referencePeak": 0.24697791039943695,
+                "actualPeak": 0.246978759765625
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "highpass-80",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999725846827561,
+              "b1": -1.9999451693655121,
+              "b2": 0.9999725846827561,
+              "a0": 1.0074046695293668,
+              "a1": -1.9998903387310243,
+              "a2": 0.9925953304706333
+            }
+          },
+          "nativeParameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "detune": 0
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.0074046695293668:a1=-1.9998903387310243:a2=0.9925953304706333:b0=0.9999725846827561:b1=-1.9999451693655121:b2=0.9999725846827561:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 480,
+              "rmsErrorPcm16": 15.61805522119551,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.24155914783477783,
+              "actualPeak": 0.241546630859375
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 1613,
+              "rmsErrorPcm16": 28.73834709370725,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.2395780086517334,
+              "actualPeak": 0.23956298828125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.67529296875,
+                "rmsErrorPcm16": 0.29350298993459234,
+                "worstFrame": 26785,
+                "worstAtSeconds": 0.5580208333333333,
+                "referencePeak": 0.24155914783477783,
+                "actualPeak": 0.241546630859375
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.663330078125,
+                "rmsErrorPcm16": 0.2919473886882447,
+                "worstFrame": 49204,
+                "worstAtSeconds": 1.0250833333333333,
+                "referencePeak": 0.2395780086517334,
+                "actualPeak": 0.23956298828125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "speed-085",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 0.85,
+            "nativeFloat32Ratio": 0.8500000238418579,
+            "ffmpegIntegerRate": 40800,
+            "ffmpegRatio": 0.85
+          },
+          "nativeParameters": {
+            "playbackRate": 0.8500000238418579
+          },
+          "outputFrames": 124942,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=40800,aresample=48000:dither_method=none,apad=whole_len=124942,atrim=end_sample=124942",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 124942,
+              "maxErrorPcm16": 7183.9765625,
+              "rmsErrorPcm16": 1022.0003793900167,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.3701164722442627,
+              "actualPeak": 0.373046875
+            },
+            {
+              "channel": "right",
+              "frames": 124942,
+              "maxErrorPcm16": 5967.9140625,
+              "rmsErrorPcm16": 908.171474912671,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.3505527973175049,
+              "actualPeak": 0.343780517578125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 110541,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 108141,
+                "maxErrorPcm16": 5391.884765625,
+                "rmsErrorPcm16": 1074.560634732607,
+                "worstFrame": 107836,
+                "worstAtSeconds": 2.246583333333333,
+                "referencePeak": 0.25872963666915894,
+                "actualPeak": 0.373046875
+              },
+              {
+                "channel": "right",
+                "frames": 108141,
+                "maxErrorPcm16": 4660.0732421875,
+                "rmsErrorPcm16": 954.8542618775286,
+                "worstFrame": 86490,
+                "worstAtSeconds": 1.801875,
+                "referencePeak": 0.22961558401584625,
+                "actualPeak": 0.343780517578125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "speed-115",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 1.15,
+            "nativeFloat32Ratio": 1.149999976158142,
+            "ffmpegIntegerRate": 55200,
+            "ffmpegRatio": 1.15
+          },
+          "nativeParameters": {
+            "playbackRate": 1.149999976158142
+          },
+          "outputFrames": 95479,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=55200,aresample=48000:dither_method=none,apad=whole_len=95479,atrim=end_sample=95479",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 95479,
+              "maxErrorPcm16": 4317.294677734375,
+              "rmsErrorPcm16": 975.3999453093545,
+              "worstFrame": 73733,
+              "worstAtSeconds": 1.5361041666666666,
+              "referencePeak": 0.32887300848960876,
+              "actualPeak": 0.348419189453125
+            },
+            {
+              "channel": "right",
+              "frames": 95479,
+              "maxErrorPcm16": 3996.283203125,
+              "rmsErrorPcm16": 873.0406797494207,
+              "worstFrame": 83478,
+              "worstAtSeconds": 1.739125,
+              "referencePeak": 0.30924326181411743,
+              "actualPeak": 0.314971923828125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 81078,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 78678,
+                "maxErrorPcm16": 4317.294677734375,
+                "rmsErrorPcm16": 1042.915117768065,
+                "worstFrame": 73733,
+                "worstAtSeconds": 1.5361041666666666,
+                "referencePeak": 0.25930124521255493,
+                "actualPeak": 0.348419189453125
+              },
+              {
+                "channel": "right",
+                "frames": 78678,
+                "maxErrorPcm16": 3952.08642578125,
+                "rmsErrorPcm16": 933.6131690009347,
+                "worstFrame": 44040,
+                "worstAtSeconds": 0.9175,
+                "referencePeak": 0.22962509095668793,
+                "actualPeak": 0.314971923828125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "identity",
+          "kind": "identity",
+          "parameters": null,
+          "nativeParameters": {
+            "playbackRate": 1
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.399993896484375,
+              "actualPeak": 0.399993896484375
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.350006103515625,
+              "actualPeak": 0.350006103515625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.399993896484375,
+                "actualPeak": 0.399993896484375
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.350006103515625,
+                "actualPeak": 0.350006103515625
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "highpass-40",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999931461237134,
+              "b1": -1.9999862922474267,
+              "b2": 0.9999931461237134,
+              "a0": 1.003702385516068,
+              "a1": -1.9999725844948535,
+              "a2": 0.9962976144839321
+            }
+          },
+          "nativeParameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "detune": 0
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.003702385516068:a1=-1.9999725844948535:a2=0.9962976144839321:b0=0.9999931461237134:b1=-1.9999862922474267:b2=0.9999931461237134:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5433254241943359,
+              "rmsErrorPcm16": 0.07685593688487306,
+              "worstFrame": 356,
+              "worstAtSeconds": 0.007416666666666667,
+              "referencePeak": 0.3985157012939453,
+              "actualPeak": 0.398529052734375
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5443401336669922,
+              "rmsErrorPcm16": 0.07657286117781434,
+              "worstFrame": 374,
+              "worstAtSeconds": 0.007791666666666666,
+              "referencePeak": 0.3504396677017212,
+              "actualPeak": 0.350433349609375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5105419158935547,
+                "rmsErrorPcm16": 0.07253124896407412,
+                "worstFrame": 24229,
+                "worstAtSeconds": 0.5047708333333333,
+                "referencePeak": 0.3985157012939453,
+                "actualPeak": 0.398529052734375
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5360469818115234,
+                "rmsErrorPcm16": 0.07407864266786733,
+                "worstFrame": 48232,
+                "worstAtSeconds": 1.0048333333333332,
+                "referencePeak": 0.34871262311935425,
+                "actualPeak": 0.348724365234375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "highpass-80",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999725846827561,
+              "b1": -1.9999451693655121,
+              "b2": 0.9999725846827561,
+              "a0": 1.0074046695293668,
+              "a1": -1.9998903387310243,
+              "a2": 0.9925953304706333
+            }
+          },
+          "nativeParameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "detune": 0
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.0074046695293668:a1=-1.9998903387310243:a2=0.9925953304706333:b0=0.9999725846827561:b1=-1.9999451693655121:b2=0.9999725846827561:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5054569244384766,
+              "rmsErrorPcm16": 0.06318798603170418,
+              "worstFrame": 4206,
+              "worstAtSeconds": 0.087625,
+              "referencePeak": 0.39728379249572754,
+              "actualPeak": 0.39727783203125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5275344848632812,
+              "rmsErrorPcm16": 0.06295114403444853,
+              "worstFrame": 225,
+              "worstAtSeconds": 0.0046875,
+              "referencePeak": 0.34996846318244934,
+              "actualPeak": 0.3499755859375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5054569244384766,
+                "rmsErrorPcm16": 0.06012498344133415,
+                "worstFrame": 4206,
+                "worstAtSeconds": 0.087625,
+                "referencePeak": 0.3970429599285126,
+                "actualPeak": 0.39703369140625
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5086479187011719,
+                "rmsErrorPcm16": 0.06192118847969395,
+                "worstFrame": 4194,
+                "worstAtSeconds": 0.087375,
+                "referencePeak": 0.3474239408969879,
+                "actualPeak": 0.347412109375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "speed-085",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 0.85,
+            "nativeFloat32Ratio": 0.8500000238418579,
+            "ffmpegIntegerRate": 40800,
+            "ffmpegRatio": 0.85
+          },
+          "nativeParameters": {
+            "playbackRate": 0.8500000238418579
+          },
+          "outputFrames": 124942,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=40800,aresample=48000:dither_method=none,apad=whole_len=124942,atrim=end_sample=124942",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 124942,
+              "maxErrorPcm16": 2744,
+              "rmsErrorPcm16": 24.72723784714939,
+              "worstFrame": 28237,
+              "worstAtSeconds": 0.5882708333333333,
+              "referencePeak": 0.399993896484375,
+              "actualPeak": 0.399993896484375
+            },
+            {
+              "channel": "right",
+              "frames": 124942,
+              "maxErrorPcm16": 2345,
+              "rmsErrorPcm16": 24.88275118370509,
+              "worstFrame": 70,
+              "worstAtSeconds": 0.0014583333333333334,
+              "referencePeak": 0.29998779296875,
+              "actualPeak": 0.337066650390625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 110541,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 108141,
+                "maxErrorPcm16": 2744,
+                "rmsErrorPcm16": 20.066959948685536,
+                "worstFrame": 28237,
+                "worstAtSeconds": 0.5882708333333333,
+                "referencePeak": 0.35918670892715454,
+                "actualPeak": 0.39337158203125
+              },
+              {
+                "channel": "right",
+                "frames": 108141,
+                "maxErrorPcm16": 2338,
+                "rmsErrorPcm16": 21.07329881833868,
+                "worstFrame": 56469,
+                "worstAtSeconds": 1.1764375,
+                "referencePeak": 0.2974649667739868,
+                "actualPeak": 0.337066650390625
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "speed-115",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 1.15,
+            "nativeFloat32Ratio": 1.149999976158142,
+            "ffmpegIntegerRate": 55200,
+            "ffmpegRatio": 1.15
+          },
+          "nativeParameters": {
+            "playbackRate": 1.149999976158142
+          },
+          "outputFrames": 95479,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=55200,aresample=48000:dither_method=none,apad=whole_len=95479,atrim=end_sample=95479",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 95479,
+              "maxErrorPcm16": 2309,
+              "rmsErrorPcm16": 26.67859790990138,
+              "worstFrame": 109,
+              "worstAtSeconds": 0.0022708333333333335,
+              "referencePeak": 0.399993896484375,
+              "actualPeak": 0.33740234375
+            },
+            {
+              "channel": "right",
+              "frames": 95479,
+              "maxErrorPcm16": 1731,
+              "rmsErrorPcm16": 23.56723346264003,
+              "worstFrame": 109,
+              "worstAtSeconds": 0.0022708333333333335,
+              "referencePeak": 0.33250534534454346,
+              "actualPeak": 0.294342041015625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 81078,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 78678,
+                "maxErrorPcm16": 2309,
+                "rmsErrorPcm16": 22.94046680272164,
+                "worstFrame": 20871,
+                "worstAtSeconds": 0.4348125,
+                "referencePeak": 0.26059311628341675,
+                "actualPeak": 0.2906494140625
+              },
+              {
+                "channel": "right",
+                "frames": 78678,
+                "maxErrorPcm16": 1731,
+                "rmsErrorPcm16": 21.325727626368224,
+                "worstFrame": 20871,
+                "worstAtSeconds": 0.4348125,
+                "referencePeak": 0.2971568703651428,
+                "actualPeak": 0.287445068359375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "identity",
+          "kind": "identity",
+          "parameters": null,
+          "nativeParameters": {
+            "playbackRate": 1
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.23370361328125,
+              "actualPeak": 0.23370361328125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.23992919921875,
+              "actualPeak": 0.23992919921875
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.23370361328125,
+                "actualPeak": 0.23370361328125
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.23992919921875,
+                "actualPeak": 0.23992919921875
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "highpass-40",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999931461237134,
+              "b1": -1.9999862922474267,
+              "b2": 0.9999931461237134,
+              "a0": 1.003702385516068,
+              "a1": -1.9999725844948535,
+              "a2": 0.9962976144839321
+            }
+          },
+          "nativeParameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "detune": 0
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.003702385516068:a1=-1.9999725844948535:a2=0.9962976144839321:b0=0.9999931461237134:b1=-1.9999862922474267:b2=0.9999931461237134:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 3957,
+              "rmsErrorPcm16": 99.33631088807617,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.18144865334033966,
+              "actualPeak": 0.18145751953125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 3964,
+              "rmsErrorPcm16": 104.35963068267739,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.2185317873954773,
+              "actualPeak": 0.218536376953125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.7322998046875,
+                "rmsErrorPcm16": 0.30505555715180804,
+                "worstFrame": 26327,
+                "worstAtSeconds": 0.5484791666666666,
+                "referencePeak": 0.18144865334033966,
+                "actualPeak": 0.18145751953125
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.8251953125,
+                "rmsErrorPcm16": 0.309086169130171,
+                "worstFrame": 71848,
+                "worstAtSeconds": 1.4968333333333332,
+                "referencePeak": 0.2185317873954773,
+                "actualPeak": 0.218536376953125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "highpass-80",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999725846827561,
+              "b1": -1.9999451693655121,
+              "b2": 0.9999725846827561,
+              "a0": 1.0074046695293668,
+              "a1": -1.9998903387310243,
+              "a2": 0.9925953304706333
+            }
+          },
+          "nativeParameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "detune": 0
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.0074046695293668:a1=-1.9998903387310243:a2=0.9925953304706333:b0=0.9999725846827561:b1=-1.9999451693655121:b2=0.9999725846827561:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 1698,
+              "rmsErrorPcm16": 43.14136423398458,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.11183032393455505,
+              "actualPeak": 0.11181640625
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 2830,
+              "rmsErrorPcm16": 51.055385383119535,
+              "worstFrame": 96000,
+              "worstAtSeconds": 2,
+              "referencePeak": 0.15950389206409454,
+              "actualPeak": 0.159515380859375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5509033203125,
+                "rmsErrorPcm16": 0.292055346189584,
+                "worstFrame": 2780,
+                "worstAtSeconds": 0.057916666666666665,
+                "referencePeak": 0.11183032393455505,
+                "actualPeak": 0.11181640625
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.61181640625,
+                "rmsErrorPcm16": 0.2912594932354358,
+                "worstFrame": 56785,
+                "worstAtSeconds": 1.1830208333333334,
+                "referencePeak": 0.15950389206409454,
+                "actualPeak": 0.159515380859375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "speed-085",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 0.85,
+            "nativeFloat32Ratio": 0.8500000238418579,
+            "ffmpegIntegerRate": 40800,
+            "ffmpegRatio": 0.85
+          },
+          "nativeParameters": {
+            "playbackRate": 0.8500000238418579
+          },
+          "outputFrames": 124942,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=40800,aresample=48000:dither_method=none,apad=whole_len=124942,atrim=end_sample=124942",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 124942,
+              "maxErrorPcm16": 219.57550430297852,
+              "rmsErrorPcm16": 2.200223878931509,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.23370306193828583,
+              "actualPeak": 0.23370361328125
+            },
+            {
+              "channel": "right",
+              "frames": 124942,
+              "maxErrorPcm16": 433.03485107421875,
+              "rmsErrorPcm16": 10.085280649873974,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.2398003488779068,
+              "actualPeak": 0.23992919921875
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 110541,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 108141,
+                "maxErrorPcm16": 4.954833984375,
+                "rmsErrorPcm16": 2.2173750126891743,
+                "worstFrame": 104457,
+                "worstAtSeconds": 2.1761875,
+                "referencePeak": 0.23370306193828583,
+                "actualPeak": 0.23370361328125
+              },
+              {
+                "channel": "right",
+                "frames": 108141,
+                "maxErrorPcm16": 21.0498046875,
+                "rmsErrorPcm16": 10.526533034144638,
+                "worstFrame": 94890,
+                "worstAtSeconds": 1.976875,
+                "referencePeak": 0.2398003488779068,
+                "actualPeak": 0.23992919921875
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "speed-115",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 1.15,
+            "nativeFloat32Ratio": 1.149999976158142,
+            "ffmpegIntegerRate": 55200,
+            "ffmpegRatio": 1.15
+          },
+          "nativeParameters": {
+            "playbackRate": 1.149999976158142
+          },
+          "outputFrames": 95479,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=55200,aresample=48000:dither_method=none,apad=whole_len=95479,atrim=end_sample=95479",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 95479,
+              "maxErrorPcm16": 160.02680206298828,
+              "rmsErrorPcm16": 2.1392281604318955,
+              "worstFrame": 83478,
+              "worstAtSeconds": 1.739125,
+              "referencePeak": 0.2337031364440918,
+              "actualPeak": 0.23370361328125
+            },
+            {
+              "channel": "right",
+              "frames": 95479,
+              "maxErrorPcm16": 313.86553955078125,
+              "rmsErrorPcm16": 9.884450816373045,
+              "worstFrame": 83478,
+              "worstAtSeconds": 1.739125,
+              "referencePeak": 0.2390686422586441,
+              "actualPeak": 0.2396240234375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 81078,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 78678,
+                "maxErrorPcm16": 4.89892578125,
+                "rmsErrorPcm16": 2.2163508429072265,
+                "worstFrame": 2557,
+                "worstAtSeconds": 0.05327083333333334,
+                "referencePeak": 0.2337031364440918,
+                "actualPeak": 0.23370361328125
+              },
+              {
+                "channel": "right",
+                "frames": 78678,
+                "maxErrorPcm16": 20.96484375,
+                "rmsErrorPcm16": 10.511878680985616,
+                "worstFrame": 33510,
+                "worstAtSeconds": 0.698125,
+                "referencePeak": 0.2390686422586441,
+                "actualPeak": 0.2396240234375
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "experimentVersion": 2,
+      "status": "completed",
+      "startedAt": "2026-11-19T01:29:26.263Z",
+      "finishedAt": "2026-11-19T01:29:28.927Z",
+      "node": "v22.23.3",
+      "platform": "win32",
+      "source": {
+        "repositoryCommit": "5d81381b19209c2cdf32f48756dadc6af0062d8f",
+        "repoUsedOnlyFor": "existing Playwright package"
+      },
+      "browser": "159.0.8154.6",
+      "ffmpeg": "ffmpeg version 9.0.2-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+      "sampleRate": 48000,
+      "inputFrames": 96000,
+      "thresholds": {
+        "maxErrorPcm16": 3,
+        "rmsErrorPcm16": 0.75
+      },
+      "comparison": "FFmpeg PCM16 against native Float32, both scaled in PCM16 steps; no alignment, normalization, or threshold adjustment",
+      "changeFromV1": "Native high-pass input now includes explicit stereo silence through the comparison horizon, matching FFmpeg pre-filter apad. All samples, cases, comparisons, and thresholds are otherwise unchanged.",
+      "fixtures": [
+        {
+          "name": "broadband",
+          "frames": 96000,
+          "channels": 2,
+          "encoding": "signed PCM16 little-endian, interleaved",
+          "sha256": "16c686b8e64db7c8991e7a99e82d24d8cfe7b156a4ab080ff6b0a7200395a7b7",
+          "bytes": 384000
+        },
+        {
+          "name": "impulses",
+          "frames": 96000,
+          "channels": 2,
+          "encoding": "signed PCM16 little-endian, interleaved",
+          "sha256": "ac63974fe885111ffd0d7d78f2873023793a9c5d55a7e088e1d7f42cc7a6941f",
+          "bytes": 384000
+        },
+        {
+          "name": "tones",
+          "frames": 96000,
+          "channels": 2,
+          "encoding": "signed PCM16 little-endian, interleaved",
+          "sha256": "5b426e7750981b0e4870ca16a205f750c7ba316cc2964584ab6bfc512e312b31",
+          "bytes": 384000
+        }
+      ],
+      "summary": {
+        "identity": {
+          "cases": 3,
+          "withinThresholds": 3,
+          "maxErrorPcm16": 0,
+          "maxRmsErrorPcm16": 0
+        },
+        "highpass": {
+          "cases": 6,
+          "withinThresholds": 6,
+          "maxErrorPcm16": 0.998046875,
+          "maxRmsErrorPcm16": 0.31000107184141895
+        },
+        "speed": {
+          "cases": 6,
+          "withinThresholds": 0,
+          "maxErrorPcm16": 7183.9765625,
+          "maxRmsErrorPcm16": 1022.0003793900167
+        }
+      },
+      "cleanup": {
+        "browserClosed": true,
+        "ffmpegChildren": 0
+      },
+      "cases": [
+        {
+          "fixture": "broadband",
+          "name": "identity",
+          "kind": "identity",
+          "parameters": null,
+          "nativeParameters": {
+            "playbackRate": 1
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.25982666015625,
+              "actualPeak": 0.25982666015625
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.22979736328125,
+              "actualPeak": 0.22979736328125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.25982666015625,
+                "actualPeak": 0.25982666015625
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.22979736328125,
+                "actualPeak": 0.22979736328125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "highpass-40",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999931461237134,
+              "b1": -1.9999862922474267,
+              "b2": 0.9999931461237134,
+              "a0": 1.003702385516068,
+              "a1": -1.9999725844948535,
+              "a2": 0.9962976144839321
+            }
+          },
+          "nativeParameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "detune": 0,
+            "inputFrames": 108000,
+            "trailingSilenceFrames": 12000,
+            "inputChannels": 2
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.003702385516068:a1=-1.9999725844948535:a2=0.9962976144839321:b0=0.9999931461237134:b1=-1.9999862922474267:b2=0.9999931461237134:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.92822265625,
+              "rmsErrorPcm16": 0.31000107184141895,
+              "worstFrame": 65733,
+              "worstAtSeconds": 1.3694375,
+              "referencePeak": 0.2644321918487549,
+              "actualPeak": 0.264434814453125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.998046875,
+              "rmsErrorPcm16": 0.30886350571791094,
+              "worstFrame": 42106,
+              "worstAtSeconds": 0.8772083333333334,
+              "referencePeak": 0.24697791039943695,
+              "actualPeak": 0.246978759765625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.92822265625,
+                "rmsErrorPcm16": 0.32591588613046746,
+                "worstFrame": 65733,
+                "worstAtSeconds": 1.3694375,
+                "referencePeak": 0.2644321918487549,
+                "actualPeak": 0.264434814453125
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.998046875,
+                "rmsErrorPcm16": 0.32414035452024903,
+                "worstFrame": 42106,
+                "worstAtSeconds": 0.8772083333333334,
+                "referencePeak": 0.24697791039943695,
+                "actualPeak": 0.246978759765625
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "highpass-80",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999725846827561,
+              "b1": -1.9999451693655121,
+              "b2": 0.9999725846827561,
+              "a0": 1.0074046695293668,
+              "a1": -1.9998903387310243,
+              "a2": 0.9925953304706333
+            }
+          },
+          "nativeParameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "detune": 0,
+            "inputFrames": 108000,
+            "trailingSilenceFrames": 12000,
+            "inputChannels": 2
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.0074046695293668:a1=-1.9998903387310243:a2=0.9925953304706333:b0=0.9999725846827561:b1=-1.9999451693655121:b2=0.9999725846827561:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.67529296875,
+              "rmsErrorPcm16": 0.27871474446624583,
+              "worstFrame": 26785,
+              "worstAtSeconds": 0.5580208333333333,
+              "referencePeak": 0.24155914783477783,
+              "actualPeak": 0.241546630859375
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.663330078125,
+              "rmsErrorPcm16": 0.27703789719931465,
+              "worstFrame": 49204,
+              "worstAtSeconds": 1.0250833333333333,
+              "referencePeak": 0.2395780086517334,
+              "actualPeak": 0.23956298828125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.67529296875,
+                "rmsErrorPcm16": 0.29350298993459234,
+                "worstFrame": 26785,
+                "worstAtSeconds": 0.5580208333333333,
+                "referencePeak": 0.24155914783477783,
+                "actualPeak": 0.241546630859375
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.663330078125,
+                "rmsErrorPcm16": 0.2919473886882447,
+                "worstFrame": 49204,
+                "worstAtSeconds": 1.0250833333333333,
+                "referencePeak": 0.2395780086517334,
+                "actualPeak": 0.23956298828125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "speed-085",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 0.85,
+            "nativeFloat32Ratio": 0.8500000238418579,
+            "ffmpegIntegerRate": 40800,
+            "ffmpegRatio": 0.85
+          },
+          "nativeParameters": {
+            "playbackRate": 0.8500000238418579
+          },
+          "outputFrames": 124942,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=40800,aresample=48000:dither_method=none,apad=whole_len=124942,atrim=end_sample=124942",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 124942,
+              "maxErrorPcm16": 7183.9765625,
+              "rmsErrorPcm16": 1022.0003793900167,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.3701164722442627,
+              "actualPeak": 0.373046875
+            },
+            {
+              "channel": "right",
+              "frames": 124942,
+              "maxErrorPcm16": 5967.9140625,
+              "rmsErrorPcm16": 908.171474912671,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.3505527973175049,
+              "actualPeak": 0.343780517578125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 110541,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 108141,
+                "maxErrorPcm16": 5391.884765625,
+                "rmsErrorPcm16": 1074.560634732607,
+                "worstFrame": 107836,
+                "worstAtSeconds": 2.246583333333333,
+                "referencePeak": 0.25872963666915894,
+                "actualPeak": 0.373046875
+              },
+              {
+                "channel": "right",
+                "frames": 108141,
+                "maxErrorPcm16": 4660.0732421875,
+                "rmsErrorPcm16": 954.8542618775286,
+                "worstFrame": 86490,
+                "worstAtSeconds": 1.801875,
+                "referencePeak": 0.22961558401584625,
+                "actualPeak": 0.343780517578125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "broadband",
+          "name": "speed-115",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 1.15,
+            "nativeFloat32Ratio": 1.149999976158142,
+            "ffmpegIntegerRate": 55200,
+            "ffmpegRatio": 1.15
+          },
+          "nativeParameters": {
+            "playbackRate": 1.149999976158142
+          },
+          "outputFrames": 95479,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=55200,aresample=48000:dither_method=none,apad=whole_len=95479,atrim=end_sample=95479",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 95479,
+              "maxErrorPcm16": 4317.294677734375,
+              "rmsErrorPcm16": 975.3999453093545,
+              "worstFrame": 73733,
+              "worstAtSeconds": 1.5361041666666666,
+              "referencePeak": 0.32887300848960876,
+              "actualPeak": 0.348419189453125
+            },
+            {
+              "channel": "right",
+              "frames": 95479,
+              "maxErrorPcm16": 3996.283203125,
+              "rmsErrorPcm16": 873.0406797494207,
+              "worstFrame": 83478,
+              "worstAtSeconds": 1.739125,
+              "referencePeak": 0.30924326181411743,
+              "actualPeak": 0.314971923828125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 81078,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 78678,
+                "maxErrorPcm16": 4317.294677734375,
+                "rmsErrorPcm16": 1042.915117768065,
+                "worstFrame": 73733,
+                "worstAtSeconds": 1.5361041666666666,
+                "referencePeak": 0.25930124521255493,
+                "actualPeak": 0.348419189453125
+              },
+              {
+                "channel": "right",
+                "frames": 78678,
+                "maxErrorPcm16": 3952.08642578125,
+                "rmsErrorPcm16": 933.6131690009347,
+                "worstFrame": 44040,
+                "worstAtSeconds": 0.9175,
+                "referencePeak": 0.22962509095668793,
+                "actualPeak": 0.314971923828125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "identity",
+          "kind": "identity",
+          "parameters": null,
+          "nativeParameters": {
+            "playbackRate": 1
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.399993896484375,
+              "actualPeak": 0.399993896484375
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.350006103515625,
+              "actualPeak": 0.350006103515625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.399993896484375,
+                "actualPeak": 0.399993896484375
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.350006103515625,
+                "actualPeak": 0.350006103515625
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "highpass-40",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999931461237134,
+              "b1": -1.9999862922474267,
+              "b2": 0.9999931461237134,
+              "a0": 1.003702385516068,
+              "a1": -1.9999725844948535,
+              "a2": 0.9962976144839321
+            }
+          },
+          "nativeParameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "detune": 0,
+            "inputFrames": 108000,
+            "trailingSilenceFrames": 12000,
+            "inputChannels": 2
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.003702385516068:a1=-1.9999725844948535:a2=0.9962976144839321:b0=0.9999931461237134:b1=-1.9999862922474267:b2=0.9999931461237134:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5433254241943359,
+              "rmsErrorPcm16": 0.07685593688487306,
+              "worstFrame": 356,
+              "worstAtSeconds": 0.007416666666666667,
+              "referencePeak": 0.3985157012939453,
+              "actualPeak": 0.398529052734375
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5443401336669922,
+              "rmsErrorPcm16": 0.07657286117781434,
+              "worstFrame": 374,
+              "worstAtSeconds": 0.007791666666666666,
+              "referencePeak": 0.3504396677017212,
+              "actualPeak": 0.350433349609375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5105419158935547,
+                "rmsErrorPcm16": 0.07253124896407412,
+                "worstFrame": 24229,
+                "worstAtSeconds": 0.5047708333333333,
+                "referencePeak": 0.3985157012939453,
+                "actualPeak": 0.398529052734375
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5360469818115234,
+                "rmsErrorPcm16": 0.07407864266786733,
+                "worstFrame": 48232,
+                "worstAtSeconds": 1.0048333333333332,
+                "referencePeak": 0.34871262311935425,
+                "actualPeak": 0.348724365234375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "highpass-80",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999725846827561,
+              "b1": -1.9999451693655121,
+              "b2": 0.9999725846827561,
+              "a0": 1.0074046695293668,
+              "a1": -1.9998903387310243,
+              "a2": 0.9925953304706333
+            }
+          },
+          "nativeParameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "detune": 0,
+            "inputFrames": 108000,
+            "trailingSilenceFrames": 12000,
+            "inputChannels": 2
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.0074046695293668:a1=-1.9998903387310243:a2=0.9925953304706333:b0=0.9999725846827561:b1=-1.9999451693655121:b2=0.9999725846827561:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5054569244384766,
+              "rmsErrorPcm16": 0.06318798603170418,
+              "worstFrame": 4206,
+              "worstAtSeconds": 0.087625,
+              "referencePeak": 0.39728379249572754,
+              "actualPeak": 0.39727783203125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5275344848632812,
+              "rmsErrorPcm16": 0.06295114403444853,
+              "worstFrame": 225,
+              "worstAtSeconds": 0.0046875,
+              "referencePeak": 0.34996846318244934,
+              "actualPeak": 0.3499755859375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5054569244384766,
+                "rmsErrorPcm16": 0.06012498344133415,
+                "worstFrame": 4206,
+                "worstAtSeconds": 0.087625,
+                "referencePeak": 0.3970429599285126,
+                "actualPeak": 0.39703369140625
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5086479187011719,
+                "rmsErrorPcm16": 0.06192118847969395,
+                "worstFrame": 4194,
+                "worstAtSeconds": 0.087375,
+                "referencePeak": 0.3474239408969879,
+                "actualPeak": 0.347412109375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "speed-085",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 0.85,
+            "nativeFloat32Ratio": 0.8500000238418579,
+            "ffmpegIntegerRate": 40800,
+            "ffmpegRatio": 0.85
+          },
+          "nativeParameters": {
+            "playbackRate": 0.8500000238418579
+          },
+          "outputFrames": 124942,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=40800,aresample=48000:dither_method=none,apad=whole_len=124942,atrim=end_sample=124942",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 124942,
+              "maxErrorPcm16": 2744,
+              "rmsErrorPcm16": 24.72723784714939,
+              "worstFrame": 28237,
+              "worstAtSeconds": 0.5882708333333333,
+              "referencePeak": 0.399993896484375,
+              "actualPeak": 0.399993896484375
+            },
+            {
+              "channel": "right",
+              "frames": 124942,
+              "maxErrorPcm16": 2345,
+              "rmsErrorPcm16": 24.88275118370509,
+              "worstFrame": 70,
+              "worstAtSeconds": 0.0014583333333333334,
+              "referencePeak": 0.29998779296875,
+              "actualPeak": 0.337066650390625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 110541,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 108141,
+                "maxErrorPcm16": 2744,
+                "rmsErrorPcm16": 20.066959948685536,
+                "worstFrame": 28237,
+                "worstAtSeconds": 0.5882708333333333,
+                "referencePeak": 0.35918670892715454,
+                "actualPeak": 0.39337158203125
+              },
+              {
+                "channel": "right",
+                "frames": 108141,
+                "maxErrorPcm16": 2338,
+                "rmsErrorPcm16": 21.07329881833868,
+                "worstFrame": 56469,
+                "worstAtSeconds": 1.1764375,
+                "referencePeak": 0.2974649667739868,
+                "actualPeak": 0.337066650390625
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "impulses",
+          "name": "speed-115",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 1.15,
+            "nativeFloat32Ratio": 1.149999976158142,
+            "ffmpegIntegerRate": 55200,
+            "ffmpegRatio": 1.15
+          },
+          "nativeParameters": {
+            "playbackRate": 1.149999976158142
+          },
+          "outputFrames": 95479,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=55200,aresample=48000:dither_method=none,apad=whole_len=95479,atrim=end_sample=95479",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 95479,
+              "maxErrorPcm16": 2309,
+              "rmsErrorPcm16": 26.67859790990138,
+              "worstFrame": 109,
+              "worstAtSeconds": 0.0022708333333333335,
+              "referencePeak": 0.399993896484375,
+              "actualPeak": 0.33740234375
+            },
+            {
+              "channel": "right",
+              "frames": 95479,
+              "maxErrorPcm16": 1731,
+              "rmsErrorPcm16": 23.56723346264003,
+              "worstFrame": 109,
+              "worstAtSeconds": 0.0022708333333333335,
+              "referencePeak": 0.33250534534454346,
+              "actualPeak": 0.294342041015625
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 81078,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 78678,
+                "maxErrorPcm16": 2309,
+                "rmsErrorPcm16": 22.94046680272164,
+                "worstFrame": 20871,
+                "worstAtSeconds": 0.4348125,
+                "referencePeak": 0.26059311628341675,
+                "actualPeak": 0.2906494140625
+              },
+              {
+                "channel": "right",
+                "frames": 78678,
+                "maxErrorPcm16": 1731,
+                "rmsErrorPcm16": 21.325727626368224,
+                "worstFrame": 20871,
+                "worstAtSeconds": 0.4348125,
+                "referencePeak": 0.2971568703651428,
+                "actualPeak": 0.287445068359375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "identity",
+          "kind": "identity",
+          "parameters": null,
+          "nativeParameters": {
+            "playbackRate": 1
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.23370361328125,
+              "actualPeak": 0.23370361328125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0,
+              "rmsErrorPcm16": 0,
+              "worstFrame": 0,
+              "worstAtSeconds": 0,
+              "referencePeak": 0.23992919921875,
+              "actualPeak": 0.23992919921875
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.23370361328125,
+                "actualPeak": 0.23370361328125
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0,
+                "rmsErrorPcm16": 0,
+                "worstFrame": 2400,
+                "worstAtSeconds": 0.05,
+                "referencePeak": 0.23992919921875,
+                "actualPeak": 0.23992919921875
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "highpass-40",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999931461237134,
+              "b1": -1.9999862922474267,
+              "b2": 0.9999931461237134,
+              "a0": 1.003702385516068,
+              "a1": -1.9999725844948535,
+              "a2": 0.9962976144839321
+            }
+          },
+          "nativeParameters": {
+            "frequency": 40,
+            "qDb": -3.0102999210357666,
+            "detune": 0,
+            "inputFrames": 108000,
+            "trailingSilenceFrames": 12000,
+            "inputChannels": 2
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.003702385516068:a1=-1.9999725844948535:a2=0.9962976144839321:b0=0.9999931461237134:b1=-1.9999862922474267:b2=0.9999931461237134:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.7322998046875,
+              "rmsErrorPcm16": 0.29155691442943577,
+              "worstFrame": 26327,
+              "worstAtSeconds": 0.5484791666666666,
+              "referencePeak": 0.18144865334033966,
+              "actualPeak": 0.18145751953125
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.8251953125,
+              "rmsErrorPcm16": 0.2946576531377908,
+              "worstFrame": 71848,
+              "worstAtSeconds": 1.4968333333333332,
+              "referencePeak": 0.2185317873954773,
+              "actualPeak": 0.218536376953125
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.7322998046875,
+                "rmsErrorPcm16": 0.30505555715180804,
+                "worstFrame": 26327,
+                "worstAtSeconds": 0.5484791666666666,
+                "referencePeak": 0.18144865334033966,
+                "actualPeak": 0.18145751953125
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.8251953125,
+                "rmsErrorPcm16": 0.309086169130171,
+                "worstFrame": 71848,
+                "worstAtSeconds": 1.4968333333333332,
+                "referencePeak": 0.2185317873954773,
+                "actualPeak": 0.218536376953125
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "highpass-80",
+          "kind": "highpass",
+          "parameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "coefficients": {
+              "b0": 0.9999725846827561,
+              "b1": -1.9999451693655121,
+              "b2": 0.9999725846827561,
+              "a0": 1.0074046695293668,
+              "a1": -1.9998903387310243,
+              "a2": 0.9925953304706333
+            }
+          },
+          "nativeParameters": {
+            "frequency": 80,
+            "qDb": -3.0102999210357666,
+            "detune": 0,
+            "inputFrames": 108000,
+            "trailingSilenceFrames": 12000,
+            "inputChannels": 2
+          },
+          "outputFrames": 108000,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,apad=whole_len=108000,atrim=end_sample=108000,biquad=a0=1.0074046695293668:a1=-1.9998903387310243:a2=0.9925953304706333:b0=0.9999725846827561:b1=-1.9999451693655121:b2=0.9999725846827561:normalize=0:transform=di:precision=f64:blocksize=0,aformat=sample_fmts=fltp",
+          "withinThresholds": true,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 108000,
+              "maxErrorPcm16": 0.5509033203125,
+              "rmsErrorPcm16": 0.27710627689274825,
+              "worstFrame": 2780,
+              "worstAtSeconds": 0.057916666666666665,
+              "referencePeak": 0.11183032393455505,
+              "actualPeak": 0.11181640625
+            },
+            {
+              "channel": "right",
+              "frames": 108000,
+              "maxErrorPcm16": 0.61181640625,
+              "rmsErrorPcm16": 0.2763794794369935,
+              "worstFrame": 56785,
+              "worstAtSeconds": 1.1830208333333334,
+              "referencePeak": 0.15950389206409454,
+              "actualPeak": 0.159515380859375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 93600,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 91200,
+                "maxErrorPcm16": 0.5509033203125,
+                "rmsErrorPcm16": 0.292055346189584,
+                "worstFrame": 2780,
+                "worstAtSeconds": 0.057916666666666665,
+                "referencePeak": 0.11183032393455505,
+                "actualPeak": 0.11181640625
+              },
+              {
+                "channel": "right",
+                "frames": 91200,
+                "maxErrorPcm16": 0.61181640625,
+                "rmsErrorPcm16": 0.2912594932354358,
+                "worstFrame": 56785,
+                "worstAtSeconds": 1.1830208333333334,
+                "referencePeak": 0.15950389206409454,
+                "actualPeak": 0.159515380859375
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "speed-085",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 0.85,
+            "nativeFloat32Ratio": 0.8500000238418579,
+            "ffmpegIntegerRate": 40800,
+            "ffmpegRatio": 0.85
+          },
+          "nativeParameters": {
+            "playbackRate": 0.8500000238418579
+          },
+          "outputFrames": 124942,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=40800,aresample=48000:dither_method=none,apad=whole_len=124942,atrim=end_sample=124942",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 124942,
+              "maxErrorPcm16": 219.57550430297852,
+              "rmsErrorPcm16": 2.200223878931509,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.23370306193828583,
+              "actualPeak": 0.23370361328125
+            },
+            {
+              "channel": "right",
+              "frames": 124942,
+              "maxErrorPcm16": 433.03485107421875,
+              "rmsErrorPcm16": 10.085280649873974,
+              "worstFrame": 112941,
+              "worstAtSeconds": 2.3529375,
+              "referencePeak": 0.2398003488779068,
+              "actualPeak": 0.23992919921875
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 110541,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 108141,
+                "maxErrorPcm16": 4.954833984375,
+                "rmsErrorPcm16": 2.2173750126891743,
+                "worstFrame": 104457,
+                "worstAtSeconds": 2.1761875,
+                "referencePeak": 0.23370306193828583,
+                "actualPeak": 0.23370361328125
+              },
+              {
+                "channel": "right",
+                "frames": 108141,
+                "maxErrorPcm16": 21.0498046875,
+                "rmsErrorPcm16": 10.526533034144638,
+                "worstFrame": 94890,
+                "worstAtSeconds": 1.976875,
+                "referencePeak": 0.2398003488779068,
+                "actualPeak": 0.23992919921875
+              }
+            ]
+          }
+        },
+        {
+          "fixture": "tones",
+          "name": "speed-115",
+          "kind": "speed",
+          "parameters": {
+            "requestedRatio": 1.15,
+            "nativeFloat32Ratio": 1.149999976158142,
+            "ffmpegIntegerRate": 55200,
+            "ffmpegRatio": 1.15
+          },
+          "nativeParameters": {
+            "playbackRate": 1.149999976158142
+          },
+          "outputFrames": 95479,
+          "filter": "aformat=sample_fmts=fltp:channel_layouts=stereo,asetrate=55200,aresample=48000:dither_method=none,apad=whole_len=95479,atrim=end_sample=95479",
+          "withinThresholds": false,
+          "channels": [
+            {
+              "channel": "left",
+              "frames": 95479,
+              "maxErrorPcm16": 160.02680206298828,
+              "rmsErrorPcm16": 2.1392281604318955,
+              "worstFrame": 83478,
+              "worstAtSeconds": 1.739125,
+              "referencePeak": 0.2337031364440918,
+              "actualPeak": 0.23370361328125
+            },
+            {
+              "channel": "right",
+              "frames": 95479,
+              "maxErrorPcm16": 313.86553955078125,
+              "rmsErrorPcm16": 9.884450816373045,
+              "worstFrame": 83478,
+              "worstAtSeconds": 1.739125,
+              "referencePeak": 0.2390686422586441,
+              "actualPeak": 0.2396240234375
+            }
+          ],
+          "interior": {
+            "startFrame": 2400,
+            "endFrame": 81078,
+            "diagnosticOnly": true,
+            "channels": [
+              {
+                "channel": "left",
+                "frames": 78678,
+                "maxErrorPcm16": 4.89892578125,
+                "rmsErrorPcm16": 2.2163508429072265,
+                "worstFrame": 2557,
+                "worstAtSeconds": 0.05327083333333334,
+                "referencePeak": 0.2337031364440918,
+                "actualPeak": 0.23370361328125
+              },
+              {
+                "channel": "right",
+                "frames": 78678,
+                "maxErrorPcm16": 20.96484375,
+                "rmsErrorPcm16": 10.511878680985616,
+                "worstFrame": 33510,
+                "worstAtSeconds": 0.698125,
+                "referencePeak": 0.2390686422586441,
+                "actualPeak": 0.2396240234375
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

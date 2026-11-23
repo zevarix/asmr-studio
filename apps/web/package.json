@@ -1,0 +1,29 @@
+{
+  "name": "@asmr-studio/web",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build ../.. --config ../../vite.config.ts --outDir apps/web/dist"
+  },
+  "dependencies": {
+    "@asmr-studio/audio-engine": "0.0.0",
+    "@asmr-studio/contracts": "0.0.0",
+    "@tabler/icons-react": "3.52.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@vitejs/plugin-react": "6.3.0",
+    "tailwindcss": "4.3.5",
+    "@tailwindcss/vite": "4.3.5",
+    "jsdom": "31.0.1"
+  }
+}

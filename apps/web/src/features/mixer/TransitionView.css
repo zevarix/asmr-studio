@@ -1,0 +1,33 @@
+.transition-decks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem; align-items: start; }
+.transition-deck { min-width: 0; }
+.transition-deck > select { width: 100%; margin-top: .35rem; }
+.transition-deck-help, .transition-help { color: var(--muted); font-size: .86rem; line-height: 1.6; margin: .7rem 0; }
+.transition-capture { padding-top: .8rem; margin-top: 1rem; border-top: 1px solid var(--border); }
+.transition-capture h3 { margin: 0; font-size: 1.1rem; }
+.transition-capture > p { margin: .35rem 0 .65rem; font-size: .85rem; color: var(--muted); }
+.transition-capture ul { list-style: none; padding: 0; margin: .75rem 0; display: grid; gap: .35rem; }
+.transition-capture li { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .2rem .7rem; overflow-wrap: anywhere; }
+.transition-capture li span { color: var(--muted); font-size: .78rem; }
+.transition-capture button { margin-top: .3rem; }
+.transition-loading { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: .5rem; }
+.transition-loading p { color: var(--muted); font-size: .9rem; }
+.transition-restart { display: flex; align-items: center; gap: 1rem; margin: 0 0 1.1rem; }
+.transition-restart button { flex-shrink: 0; }
+.transition-restart p { color: var(--muted); font-size: .86rem; margin: 0; }
+.transition-blend-labels { display: flex; justify-content: space-between; margin: .8rem 0 .2rem; }
+.transition-blend-labels strong { font-variant-numeric: tabular-nums; margin-left: .5rem; }
+.transition-timing { display: flex; align-items: end; gap: .75rem; flex-wrap: wrap; margin: 1.25rem 0 .9rem; }
+.transition-timing label { display: grid; gap: .35rem; font-size: .85rem; color: var(--muted); min-width: 0; }
+.transition-timing input { width: 100%; max-width: 15rem; }
+.transition-progress { font-size: .9rem; margin: 1rem 0 .3rem; }
+.transition-remaining { font-size: .85rem; margin: 0; color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) {
+  .listening-room.transition-room input[type="range"] { min-height: 42px; height: 42px; }
+  .transition-decks { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .transition-restart { flex-wrap: wrap; gap: .6rem; }
+  .transition-timing label { flex-basis: 100%; }
+}
+@media (max-width: 360px) {
+  .transition-timing > button, .transition-restart > button { width: 100%; }
+  .transition-capture > button { width: 100%; padding-inline: .55rem; }
+}

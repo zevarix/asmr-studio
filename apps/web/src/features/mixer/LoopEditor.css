@@ -1,0 +1,92 @@
+.loop-waveform {
+  --handle-size: 42px;
+  --handle-inset: calc(var(--handle-size) / 2);
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--handle-size) 34px var(--handle-size);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.loop-waveform > svg {
+  position: absolute;
+  inset: var(--handle-inset);
+  width: calc(100% - var(--handle-size));
+  height: calc(100% - var(--handle-size));
+  pointer-events: none;
+}
+.loop-waveform-selection { fill: var(--selected); }
+.loop-waveform-overlap { fill: #597e64; }
+.loop-waveform-axis { stroke: var(--control-border); stroke-opacity: .55; }
+.loop-waveform-peaks { stroke: var(--accent); stroke-width: .8px; }
+.loop-waveform-marker { stroke: var(--accent); }
+.loop-waveform-handle { position: relative; min-width: 0; }
+.loop-waveform-handle:last-child { grid-row: 3; }
+.loop-waveform-handle input[type="range"] {
+  position: relative;
+  display: block;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: var(--handle-size);
+  cursor: ew-resize;
+  direction: ltr;
+  touch-action: pan-y;
+}
+.loop-waveform-handle input[type="range"]::-webkit-slider-runnable-track {
+  height: var(--handle-size);
+  background: transparent;
+}
+.loop-waveform-handle input[type="range"]::-webkit-slider-thumb {
+  width: var(--handle-size);
+  height: var(--handle-size);
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.loop-waveform-handle input[type="range"]::-moz-range-track,
+.loop-waveform-handle input[type="range"]::-moz-range-progress { background: transparent; }
+.loop-waveform-handle input[type="range"]::-moz-range-thumb {
+  width: var(--handle-size);
+  height: var(--handle-size);
+  border: 0;
+  background: transparent;
+}
+.loop-waveform-grip-track {
+  position: absolute;
+  inset: 0 var(--handle-inset);
+  pointer-events: none;
+}
+.loop-waveform-grip {
+  position: absolute;
+  top: 50%;
+  left: var(--handle-position);
+  transform: translate(-50%, -50%);
+  width: 36px;
+  padding-block: .16rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: .67rem;
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+}
+.loop-waveform-handle input[type="range"]:focus-visible + .loop-waveform-grip-track .loop-waveform-grip {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.loop-waveform-handle input[type="range"]:disabled { cursor: not-allowed; }
+.loop-waveform-handle input[type="range"]:disabled + .loop-waveform-grip-track { opacity: .5; }
+.loop-editor-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.loop-editor-actions button { flex: 1 1 auto; }
+.loop-details .loop-waveform-help { font-size: .76rem; }
+.loop-details .loop-editor-error { color: #ffce9d; }
+@media (forced-colors: active) {
+  .loop-waveform-overlap { fill: Highlight; fill-opacity: .45; }
+  .loop-waveform-axis, .loop-waveform-peaks, .loop-waveform-marker { stroke: CanvasText; }
+  .loop-waveform-grip { border-color: ButtonText; }
+  .loop-waveform-handle input[type="range"]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; }
+}

@@ -1,0 +1,200 @@
+{
+  "purpose": "Objective signal changes, not a listening acceptance judgment",
+  "method": {
+    "sourceIntervalSeconds": [
+      0,
+      30
+    ],
+    "sampleRate": 48000,
+    "channels": 2,
+    "gainDb": 0,
+    "spectrum": "Welch; Hann65536; overlap32768; constant detrend; density; channel PSD mean",
+    "filter": "W3C highpass, two-pole Butterworth; float32 Q dB; zero initial state; double coefficient/state arithmetic",
+    "numpyVersion": "2.3.5",
+    "scipyVersion": "1.17.0"
+  },
+  "results": [
+    {
+      "id": "brush",
+      "sourceSha256": "7d9669dad6353026b434832eb84c407a3bd2b958b5baaf4de4507d840d277be8",
+      "durationSeconds": 30.0,
+      "powerBelow20Percent": 82.54859514188126,
+      "powerBelow80Percent": 98.29085289672497,
+      "largestBinHz": 13.916015625,
+      "comparisons": [
+        {
+          "cutoffHz": 40,
+          "rmsChangeDb": -12.159453829761107,
+          "peakChangeDb": -4.134860719661876,
+          "bands": [
+            {
+              "fromHz": 0,
+              "toHzExclusive": 20,
+              "powerChangeDb": -18.92492197319264
+            },
+            {
+              "fromHz": 20,
+              "toHzExclusive": 60,
+              "powerChangeDb": -7.2935098918159404
+            },
+            {
+              "fromHz": 60,
+              "toHzExclusive": 200,
+              "powerChangeDb": -0.2693341236041409
+            },
+            {
+              "fromHz": 300,
+              "toHzExclusive": 5000,
+              "powerChangeDb": -0.0008489072129491177
+            }
+          ]
+        },
+        {
+          "cutoffHz": 60,
+          "rmsChangeDb": -15.063019577912062,
+          "peakChangeDb": -5.930029065896587,
+          "bands": [
+            {
+              "fromHz": 0,
+              "toHzExclusive": 20,
+              "powerChangeDb": -25.87046200624094
+            },
+            {
+              "fromHz": 20,
+              "toHzExclusive": 60,
+              "powerChangeDb": -12.248437545038371
+            },
+            {
+              "fromHz": 60,
+              "toHzExclusive": 200,
+              "powerChangeDb": -1.1018231277355819
+            },
+            {
+              "fromHz": 300,
+              "toHzExclusive": 5000,
+              "powerChangeDb": -0.00420732940788871
+            }
+          ]
+        },
+        {
+          "cutoffHz": 80,
+          "rmsChangeDb": -16.79714878769535,
+          "peakChangeDb": -7.968909386549896,
+          "bands": [
+            {
+              "fromHz": 0,
+              "toHzExclusive": 20,
+              "powerChangeDb": -30.85089333476811
+            },
+            {
+              "fromHz": 20,
+              "toHzExclusive": 60,
+              "powerChangeDb": -16.490771445813472
+            },
+            {
+              "fromHz": 60,
+              "toHzExclusive": 200,
+              "powerChangeDb": -2.4397023290427504
+            },
+            {
+              "fromHz": 300,
+              "toHzExclusive": 5000,
+              "powerChangeDb": -0.013210054046304352
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cardboard-tapping",
+      "sourceSha256": "3206371c5e994c480f437c5295dd609dd6d251830c4696814894957cce487324",
+      "durationSeconds": 30.0,
+      "powerBelow20Percent": 0.0018734547243924886,
+      "powerBelow80Percent": 8.50837792469732,
+      "largestBinHz": 146.484375,
+      "comparisons": [
+        {
+          "cutoffHz": 40,
+          "rmsChangeDb": -0.08008073376679278,
+          "peakChangeDb": -1.0401988182057886,
+          "bands": [
+            {
+              "fromHz": 0,
+              "toHzExclusive": 20,
+              "powerChangeDb": -9.683572099849156
+            },
+            {
+              "fromHz": 20,
+              "toHzExclusive": 60,
+              "powerChangeDb": -1.4007932463777935
+            },
+            {
+              "fromHz": 60,
+              "toHzExclusive": 200,
+              "powerChangeDb": -0.09098538244353604
+            },
+            {
+              "fromHz": 300,
+              "toHzExclusive": 5000,
+              "powerChangeDb": -0.0003837106441502607
+            }
+          ]
+        },
+        {
+          "cutoffHz": 60,
+          "rmsChangeDb": -0.3118990454747871,
+          "peakChangeDb": -1.6490411087305503,
+          "bands": [
+            {
+              "fromHz": 0,
+              "toHzExclusive": 20,
+              "powerChangeDb": -11.832115217438464
+            },
+            {
+              "fromHz": 20,
+              "toHzExclusive": 60,
+              "powerChangeDb": -4.346620701683046
+            },
+            {
+              "fromHz": 60,
+              "toHzExclusive": 200,
+              "powerChangeDb": -0.38990146720704477
+            },
+            {
+              "fromHz": 300,
+              "toHzExclusive": 5000,
+              "powerChangeDb": -0.0017933904245367547
+            }
+          ]
+        },
+        {
+          "cutoffHz": 80,
+          "rmsChangeDb": -0.7127823730568982,
+          "peakChangeDb": -1.7278797916520439,
+          "bands": [
+            {
+              "fromHz": 0,
+              "toHzExclusive": 20,
+              "powerChangeDb": -13.980455303327751
+            },
+            {
+              "fromHz": 20,
+              "toHzExclusive": 60,
+              "powerChangeDb": -7.927225117020361
+            },
+            {
+              "fromHz": 60,
+              "toHzExclusive": 200,
+              "powerChangeDb": -0.951958650033969
+            },
+            {
+              "fromHz": 300,
+              "toHzExclusive": 5000,
+              "powerChangeDb": -0.005545771962537269
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
