@@ -25,13 +25,20 @@ function summary(scene:Scene):SceneSummary {
 export function useSession(){
   const [scene,setScene]=useState<Scene>(()=>createEmptyScene(selectedSceneId(),'Untitled session'));
   const sceneRef=useRef(scene);
+  const versionRef=useRef(0);
+  const [stateVersion,setStateVersion]=useState(0);
+  const touchState=()=>{const next=++versionRef.current;setStateVersion(next);return next;};
   const pendingWrite=useRef(false);
   const loadGeneration=useRef(0);
   const starterRequest=useRef<Promise<void>|null>(null);
   const [assets,setAssets]=useState<AssetRecord[]>([]);
   const [savedScenes,setSavedScenes]=useState<SceneSummary[]>([]);
   const [saved,setSaved]=useState<Scene|null>(null);
+  const savedRef=useRef<Scene|null>(null);
+  const acceptSaved=(next:Scene|null)=>{savedRef.current=next;setSaved(next);};
   const [status,setStatus]=useState<SessionStatus>('loading');
+  const statusRef=useRef<SessionStatus>('loading');
+  const showStatus=(next:SessionStatus)=>{statusRef.current=next;setStatus(next);};
   const [message,setMessage]=useState<string>('');
   const [conflict,setConflict]=useState<number|null>(null);
 
@@ -47,11 +54,11 @@ export function useSession(){
         const [list,stored,scenes]=await Promise.all([studioApi.listAssets(),loadSelected(),studioApi.listScenes()]);
         if(!active||generation!==loadGeneration.current)return;
         setAssets(list);setSavedScenes(scenes);
-        if(stored){sceneRef.current=stored;setScene(stored);setSaved(stored);setStatus('saved');}
-        else setStatus('ready');
+        if(stored){sceneRef.current=stored;setScene(stored);acceptSaved(stored);touchState();showStatus('saved');}
+        else showStatus('ready');
         setMessage('');
       }catch{
-        if(active&&generation===loadGeneration.current){setStatus('error');setMessage('Could not load saved media or sessions. Local changes are still available.');}
+        if(active&&generation===loadGeneration.current){showStatus('error');setMessage('Could not load saved media or sessions. Local changes are still available.');}
       }
     };
     void load();
@@ -59,7 +66,7 @@ export function useSession(){
   },[]);
 
   const replaceDraft=(next:Scene):Scene=>{
-    sceneRef.current=next;setScene(next);setStatus(pendingWrite.current?'saving':'unsaved');setMessage('');setConflict(null);
+    sceneRef.current=next;setScene(next);touchState();showStatus(pendingWrite.current?'saving':'unsaved');setMessage('');setConflict(null);
     return next;
   };
   const edit=(command:SceneCommand):Scene=>{
@@ -108,12 +115,12 @@ export function useSession(){
     return request;
   };
   const commitSaved=(persisted:Scene,submitted:Scene)=>{
-    setSaved(persisted);
+    acceptSaved(persisted);
     const changed=JSON.stringify(sceneRef.current)!==JSON.stringify(submitted);
     const current=changed?parseScene({...sceneRef.current,id:persisted.id,revision:persisted.revision}):persisted;
-    sceneRef.current=current;setScene(current);
+    sceneRef.current=current;setScene(current);touchState();
     setSavedScenes(previous=>[summary(persisted),...previous.filter(item=>item.id!==persisted.id)]);
-    setStatus(changed?'unsaved':'saved');setConflict(null);
+    showStatus(changed?'unsaved':'saved');setConflict(null);
     setMessage(changed?'Some edits were made during saving. Save again to include them.':'');
     remember(persisted.id);
     return !changed;
@@ -122,30 +129,35 @@ export function useSession(){
     if(pendingWrite.current)return false;
     pendingWrite.current=true;
     const submitted=sceneRef.current;
-    setStatus('saving');setMessage('');
+    showStatus('saving');setMessage('');
     try{
       const persisted=submitted.revision===0?await studioApi.createScene(submitted):await studioApi.saveScene(submitted,submitted.revision);
       return commitSaved(persisted,submitted);
     }catch(error){
       if(error instanceof StudioApiError&&error.status===409){
-        setStatus('conflict');setConflict(error.currentRevision);
+        showStatus('conflict');setConflict(error.currentRevision);
         setMessage('Another editor saved a newer revision. Your changes are still here.');
-      }else{setStatus('error');setMessage('Save failed. Your unsaved changes are still here.');}
+      }else{showStatus('error');setMessage('Save failed. Your unsaved changes are still here.');}
       return false;
     }finally{pendingWrite.current=false;}
   };
-  const openScene=async(id:string):Promise<Scene|null>=>{
+  const openScene=async(id:string,isCurrent:()=>boolean=()=>true):Promise<Scene|null>=>{
     if(pendingWrite.current)return null;
     const generation=++loadGeneration.current;
-    setStatus('loading');setMessage('');
+    const expectedVersion=versionRef.current;
+    showStatus('loading');setMessage('');
     try{
       const [fresh,list,scenes]=await Promise.all([studioApi.getScene(id),studioApi.listAssets(),studioApi.listScenes()]);
       if(generation!==loadGeneration.current)return null;
-      sceneRef.current=fresh;setScene(fresh);setSaved(fresh);setAssets(list);setSavedScenes(scenes);
-      setStatus('saved');setMessage('');setConflict(null);remember(fresh.id);
+      if(!isCurrent()||versionRef.current!==expectedVersion){
+        showStatus(isDirty()?'unsaved':savedRef.current?'saved':'ready');
+        setMessage('Opening was canceled because this request is no longer current. Your draft is still here.');return null;
+      }
+      sceneRef.current=fresh;setScene(fresh);acceptSaved(fresh);setAssets(list);setSavedScenes(scenes);touchState();
+      showStatus('saved');setMessage('');setConflict(null);remember(fresh.id);
       return fresh;
     }catch{
-      if(generation===loadGeneration.current){setStatus('error');setMessage('Could not open that session. Your current session and unsaved changes are still here.');}
+      if(generation===loadGeneration.current){showStatus('error');setMessage('Could not open that session. Your current session and unsaved changes are still here.');}
       return null;
     }
   };
@@ -155,7 +167,7 @@ export function useSession(){
     loadGeneration.current++;
     const id='scene-'+crypto.randomUUID();
     const empty=transition?createEmptyTransition(id,'Untitled transition'):createEmptyScene(id,'Untitled session');
-    sceneRef.current=empty;setScene(empty);setSaved(null);setStatus('ready');setMessage('');setConflict(null);remember(empty.id);
+    sceneRef.current=empty;setScene(empty);acceptSaved(null);touchState();showStatus('ready');setMessage('');setConflict(null);remember(empty.id);
     return empty;
   };
   const newScene=():Scene|null=>newDraft(false);
@@ -164,10 +176,21 @@ export function useSession(){
     if(pendingWrite.current)return false;
     const original=sceneRef.current;
     const copy=parseScene({...original,id:'scene-'+crypto.randomUUID(),revision:0});
-    pendingWrite.current=true;setStatus('saving');setMessage('');
+    pendingWrite.current=true;showStatus('saving');setMessage('');
     try{return commitSaved(await studioApi.createScene(copy),original);}
-    catch{setStatus('error');setMessage('Save a copy failed. Your original draft is still here.');return false;}
+    catch{showStatus('error');setMessage('Save a copy failed. Your original draft is still here.');return false;}
     finally{pendingWrite.current=false;}
+  };
+  const isDirty=()=>{
+    const current=sceneRef.current,stored=savedRef.current;
+    return stored===null
+      ? JSON.stringify(current)!==JSON.stringify(current.transition?createEmptyTransition(current.id,'Untitled transition'):createEmptyScene(current.id,'Untitled session'))
+      : JSON.stringify(current)!==JSON.stringify(stored);
+  };
+  const restoreDraft=(previous:Scene,expectedVersion:number):Scene=>{
+    if(versionRef.current!==expectedVersion||pendingWrite.current||statusRef.current==='loading'||previous.id!==sceneRef.current.id)
+      throw new Error('The session changed after that adjustment. Undo is no longer available.');
+    return replaceDraft(parseScene({...previous,revision:sceneRef.current.revision}));
   };
   const assetIds=new Set(assets.map(asset=>asset.id));
   const missingAssets=sceneAssetIds(scene).filter(id=>!assetIds.has(id));
@@ -175,5 +198,7 @@ export function useSession(){
     ? JSON.stringify(scene)!==JSON.stringify(scene.transition?createEmptyTransition(scene.id,'Untitled transition'):createEmptyScene(scene.id,'Untitled session'))
     : JSON.stringify(scene)!==JSON.stringify(saved);
   return {scene,assets,savedScenes,status,message,conflict,dirty,missingAssets,edit,rename,addAsset,importFile,
-    installStarterSounds,save,reload,saveAsNew,newScene,newTransition,openScene,getScene:()=>sceneRef.current};
+    installStarterSounds,save,reload,saveAsNew,newScene,newTransition,openScene,getScene:()=>sceneRef.current,
+    stateVersion,touchState,getStateVersion:()=>versionRef.current,restoreDraft,
+    getSnapshot:()=>({scene:sceneRef.current,stateVersion:versionRef.current,savedRevision:savedRef.current?.revision??null,dirty:isDirty(),status:statusRef.current})};
 }

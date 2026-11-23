@@ -5,6 +5,8 @@ import { AssetStore, type ByteRange } from './assets.js';
 import type { ExportJobs } from './exports.js';
 import type { SceneStore } from './store.js';
 import { NotFound, RevisionConflict, StudioError } from './errors.js';
+import type {PlaybackDevices} from './playback-devices.js';
+import {registerAssistantRoutes} from './assistant-routes.js';
 
 function rangeFromHeader(header:string|undefined,size:number):ByteRange|undefined {
   if (!header) return undefined;
@@ -20,7 +22,7 @@ function rangeFromHeader(header:string|undefined,size:number):ByteRange|undefine
   return {start,endInclusive:Math.min(end,size-1)};
 }
 
-export function buildApp(deps:{scenes:SceneStore;assets:AssetStore;allowedOrigin:string;exports?:ExportJobs;starterLibrary?:{install():Promise<AssetRecord[]>;catalog():unknown}}):FastifyInstance {
+export function buildApp(deps:{scenes:SceneStore;assets:AssetStore;allowedOrigin:string;exports?:ExportJobs;assistant?:PlaybackDevices;starterLibrary?:{install():Promise<AssetRecord[]>;catalog():unknown}}):FastifyInstance {
   const allowed = new URL(deps.allowedOrigin);
   if (allowed.protocol !== 'http:' || !['127.0.0.1','localhost','[::1]'].includes(allowed.hostname) || allowed.origin !== deps.allowedOrigin) {
     throw new Error('M1 requires an explicit loopback HTTP origin');
@@ -48,6 +50,7 @@ export function buildApp(deps:{scenes:SceneStore;assets:AssetStore;allowedOrigin
     return reply.code(500).send({code:'INTERNAL_ERROR',message:'The operation failed without a confirmed result'});
   });
   app.get('/api/health',async () => ({status:'ok',schemaVersion:1}));
+  if(deps.assistant)registerAssistantRoutes(app,deps.assistant);
   if (deps.exports) {
     const exports = deps.exports;
     app.post('/api/exports',async (request,reply) => reply.code(202).send(await exports.create(parseExportRequest(request.body))));

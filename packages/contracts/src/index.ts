@@ -7,3 +7,4 @@ export * from './movement.js';
 export * from './listening-timer.js';
 export * from './occasional.js';
 export * from './transition.js';
+export * from './assistant.js';

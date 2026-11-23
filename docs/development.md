@@ -87,6 +87,58 @@ server. Requests snapshot an exact saved revision and its assets. Progress,
 cancellation, restart behavior, download routes, and rendering semantics are
 documented in [finished mixes](exports.md).
 
+## Optional assistant controls
+
+The local stdio adapter in `apps/mcp` calls the existing loopback API. It accepts
+`ASMR_STUDIO_URL` and `ASMR_CONTROL_TOKEN`; launch its built `dist/main.js`
+directly with the configured Node executable so stdout carries only the MCP
+protocol. The normal `npm run build` includes this workspace. The setup and
+seven tools are documented in [assistant controls](assistant-controls.md).
+
+`packages/contracts/src/assistant.ts` defines device observations, command
+requests, acknowledgements, and receipts. Scene edits retain the existing
+`applyCommand` validation. The browser applies commands through the same draft
+and audio operations used by local controls; the delivery broker never saves
+a scene or operates an audio graph itself.
+
+`PlaybackDevices` keeps connections and receipts in memory. Registration
+creates a device ID, a connection epoch, and distinct browser/control tokens.
+The registry stores token hashes. Browser poll, acknowledgement, and revocation
+routes require the browser token; MCP observation and submission routes require
+the paired control token. The existing exact Host/Origin checks also apply.
+The collection read returns only the paired device, not a device directory.
+
+All assistant routes are under `/api/assistant/devices`:
+
+| Route | Operation |
+| --- | --- |
+| `POST /` | Register a browser observation and return the new connection credentials. |
+| `GET /` | Read the single device paired with the control token. |
+| `GET /:id?epoch=…` | Read the selected device and observation freshness. |
+| `POST /:id/poll` | Publish current browser state and receive at most one command. |
+| `POST /:id/ack` | Report an operation's result and resulting browser state. |
+| `POST /:id/revoke` | Revoke the browser connection. |
+| `POST /:id/commands` | Submit an explicit device/epoch/version/request envelope. |
+| `GET /:id/commands/:requestId?epoch=…` | Reconcile the retained receipt. |
+
+Use `X-ASMR-Device-Token` for browser operations and `X-ASMR-Control-Token` for
+controller operations. Registration uses the existing same-origin boundary.
+Do not log request headers or connection settings.
+
+Request IDs are immutable within a connection. The broker delivers one pending
+command once and retains its receipt. A queued command can expire without
+delivery; a dispatched command without a timely acknowledgement becomes
+`unconfirmed`. Late acknowledgements cannot backdate current observations.
+Browser state versions guard both local and assistant edits, including work
+that waits for audio decoding. An edit-only undo is accepted only while its
+resulting version is still current.
+
+The broker accepts an injected clock and limits for focused tests. Its default
+heartbeat, lease, expiry, retention, and capacity are described in the setup
+guide. A restart clears connection capabilities and receipts without changing
+the ordinary saved-session database. No assistant listener is exposed beyond
+the existing loopback application.
+
 ## Audio engine
 
 The mixer in `packages/audio-engine` does not depend on React. The caller owns

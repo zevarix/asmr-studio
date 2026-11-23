@@ -10,7 +10,8 @@ import {MixerView} from './features/mixer/MixerView.js';
 import type {MixerViewProps} from './features/mixer/MixerView.js';
 
 vi.mock('./features/mixer/MixerView.js',()=>({MixerView:vi.fn((_props:MixerViewProps)=>null)}));
-vi.mock('./features/mixer/useSession.js',()=>({useSession:()=>({scene:fixtureScene(),assets:[],missingAssets:[]})}));
+vi.mock('./features/mixer/useSession.js',()=>({useSession:()=>({scene:fixtureScene(),assets:[],missingAssets:[],stateVersion:0,
+  touchState:()=>0,getStateVersion:()=>0,getSnapshot:()=>({scene:fixtureScene(),stateVersion:0,savedRevision:1,dirty:false,status:'saved'})})}));
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 
 it('keeps the mounted loop audio service usable through Strict Mode effect replay and disposes it on unmount',async()=>{

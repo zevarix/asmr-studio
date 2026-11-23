@@ -1,0 +1,12 @@
+.assistant-controls { width: calc(100% - 4rem); max-width: calc(1360px - 4rem); margin: 0 auto 2rem; padding: 1rem; border: 1px solid var(--border); border-radius: .75rem; }
+.assistant-controls summary { display: flex; gap: 1rem; justify-content: space-between; cursor: pointer; font-weight: 600; }
+.assistant-controls summary span { color: var(--muted); font-weight: 400; }
+.assistant-controls p { color: var(--muted); line-height: 1.5; }
+.assistant-connect, .assistant-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+.assistant-connect label { display: grid; gap: .5rem; flex: 1 1 16rem; }
+.assistant-connect input { width: 100%; }
+.assistant-settings { margin-top: 1rem; padding: .75rem; background: var(--inset); border: 1px solid var(--border); border-radius: .5rem; }
+.assistant-settings pre { overflow-wrap: anywhere; white-space: pre-wrap; font-size: .8rem; }
+.assistant-settings code { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .assistant-controls { width: calc(100% - 2.4rem); } }
+@media (max-width: 420px) { .assistant-controls { width: calc(100% - 1.6rem); } }

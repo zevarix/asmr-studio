@@ -50,8 +50,14 @@ Export a saved mix as a finite stereo WAV, with progress, cancellation, and
 downloadable recipe and sound credits. Exports retain the selected saved revision
 while you continue listening and editing. See [finished mixes](docs/exports.md).
 
-Whisper generation and assistant controls are not implemented yet.
-Whisper generation is deferred until the sound mixer is ready.
+Optionally connect a local assistant to one explicitly enabled browser tab.
+The MCP controls share the mixer's validated edits, report draft, saved, and
+playback state separately, and preserve newer local changes. See
+[assistant controls and setup](docs/assistant-controls.md) and the portable
+[composition skill](skills/asmr-composition/SKILL.md).
+
+Whisper generation is not implemented; it remains deferred. Import recorded
+narration through the web interface.
 
 ## Run locally
 
@@ -141,8 +147,10 @@ playback; those still need listening and device testing.
 
 - `apps/web`: React interface and session editing.
 - `apps/server`: Fastify API, SQLite persistence, and managed audio storage.
+- `apps/mcp`: optional local stdio adapter for a paired browser's assistant controls.
 - `packages/audio-engine`: framework-independent Web Audio mixer.
 - `packages/contracts`: shared scene validation and editing commands.
+- `skills/asmr-composition`: portable instructions for composing with the MCP tools.
 - `tests`: browser tests, generated fixtures, and restart checks.
 
 See [development notes](docs/development.md) for configuration, API behavior,

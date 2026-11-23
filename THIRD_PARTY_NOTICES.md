@@ -15,6 +15,16 @@ them requires the relevant attribution, license links, and change notices.
 **Recipe & credits** in the export panel provides the captured source declarations.
 Personal imports retain their original permissions.
 
+## Model Context Protocol TypeScript SDK
+
+The optional local MCP adapter uses `@modelcontextprotocol/server` 2.4.0.
+Its integration tests use `@modelcontextprotocol/client` 2.4.0. These packages
+are licensed under Apache-2.0 and retain their upstream license notices.
+
+- Source: https://github.com/modelcontextprotocol/typescript-sdk
+- License: https://github.com/modelcontextprotocol/typescript-sdk/blob/main/LICENSE
+- SDK documentation: https://ts.sdk.modelcontextprotocol.io/v2/
+
 ## Tabler Icons
 
 ASMR Studio uses `@tabler/icons-react` 3.52.0 for interface icons.

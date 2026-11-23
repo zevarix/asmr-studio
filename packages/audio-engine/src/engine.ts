@@ -94,6 +94,9 @@ export function createMixer(options:MixerOptions):Mixer {
     });
   }
   function assertAlive():void { if (disposed) throw new Error('This mixer has been disposed'); }
+  function assertCurrent(isCurrent:(()=>boolean)|undefined):void {
+    if(isCurrent&&!isCurrent())throw new SceneValidationError('The playback request is no longer current');
+  }
   function cloneOutput(value:OutputMeterSnapshot):OutputMeterSnapshot {
     return {...value,peak:[...value.peak],rms:[...value.rms],heldPeak:[...value.heldPeak],clipped:[...value.clipped]};
   }
@@ -309,7 +312,7 @@ export function createMixer(options:MixerOptions):Mixer {
     // including EQ/limiter tails, while the other source continues its clock.
     return Number.isFinite(endpoint)?{enabled:true,durationSeconds:endpoint,fadeInSeconds:0,fadeOutSeconds:0}:undefined;
   }
-  async function createSide(id:SideId,capture:CapturedMix,assets:Map<string,AudioBuffer>):Promise<SideBus> {
+  async function createSide(id:SideId,capture:CapturedMix,assets:Map<string,AudioBuffer>,isCurrent?:()=>boolean):Promise<SideBus> {
     const destination=masterEqualizer!.filters[0]!;
     const equalizer=createEqualizer(capture.scene.masterEqualizer);
     let gain:GainNode|undefined,blend:GainNode|undefined,fallback:GainNode|null=null,stage:MixerOutputStage|null=null;
@@ -319,7 +322,8 @@ export function createMixer(options:MixerOptions):Mixer {
       gain.gain.setValueAtTime(capture.scene.masterGain,context.currentTime);blend.gain.setValueAtTime(0,context.currentTime);
       if(capture.scene.outputLimiter?.enabled){
         if(!options.createOutputStage)throw new SceneValidationError('An output processor is required to enable a captured mix peak limiter');
-        stage=await options.createOutputStage(context);stage.reset();stage.setLimiter(capture.scene.outputLimiter,false);
+        stage=await options.createOutputStage(context);assertCurrent(isCurrent);
+        stage.reset();stage.setLimiter(capture.scene.outputLimiter,false);
       }else{fallback=context.createGain();fallback.gain.setValueAtTime(1,context.currentTime);}
       const timing=new ListeningTimerController(context,stage?.listeningGain??fallback!.gain);
       timing.reset(sideTimer(capture.scene,assets));
@@ -345,13 +349,15 @@ export function createMixer(options:MixerOptions):Mixer {
   function sameCapture(left:CapturedMix,right:CapturedMix):boolean {
     return left.id===right.id&&JSON.stringify(left)===JSON.stringify(right);
   }
-  async function prepareSides(next:Scene,assets:Map<string,AudioBuffer>):Promise<Map<SideId,SideBus>> {
+  async function prepareSides(next:Scene,assets:Map<string,AudioBuffer>,isCurrent?:()=>boolean):Promise<Map<SideId,SideBus>> {
     const prepared=new Map<SideId,SideBus>();
     try{
+      assertCurrent(isCurrent);
       for(const id of ['a','b'] as const){
         const capture=next.transition?.[id];if(!capture)continue;
         const old=sideBuses.get(id);
-        prepared.set(id,old&&sameCapture(old.capture,capture)?old:await createSide(id,capture,assets));
+        prepared.set(id,old&&sameCapture(old.capture,capture)?old:await createSide(id,capture,assets,isCurrent));
+        assertCurrent(isCurrent);
       }
       return prepared;
     }catch(failure){discardPreparedSides(prepared);throw failure;}
@@ -559,7 +565,7 @@ export function createMixer(options:MixerOptions):Mixer {
     }
     notify();
   }
-  function reconcileLoaded(next:Scene,loaded:Map<string,AudioBuffer>,preparedSides=sideBuses):void {
+  function reconcileLoaded(next:Scene,loaded:Map<string,AudioBuffer>,preparedSides=sideBuses,isCurrent?:()=>boolean):void {
     // Decoding can finish after the audio clock has already silenced this mix.
     // Retire that session before accepting the edit, without reviving playback.
     completeIfDue();
@@ -602,6 +608,7 @@ export function createMixer(options:MixerOptions):Mixer {
           if(preparedPlayback)playbacks.set(graphKey,preparedPlayback);
         }
       }
+      assertCurrent(isCurrent);
     } catch (failure) {
       for(const playback of playbacks.values())playback.dispose();
       rollbackMovement();rollbackListening();
@@ -648,8 +655,8 @@ export function createMixer(options:MixerOptions):Mixer {
   }
   context.addEventListener('statechange',interrupted);
   const mixer:Mixer = {
-    async setScene(input) {
-      assertAlive();
+    async setScene(input,isCurrent) {
+      assertAlive();assertCurrent(isCurrent);
       const next = parseScene(input);
       const token = ++generation; editGeneration++; pendingPlay = null; listening?.pause();clearPlayback(); clearGraphs();clearSides(); clearMasterEqualizer(); loops.clear();
       const oldBuffers = buffers; buffers = new Map(); scene = null; desiredScene = null; position = 0; state = 'loading'; error = null; notify();
@@ -660,23 +667,29 @@ export function createMixer(options:MixerOptions):Mixer {
         }
         await prepareOutputStage();
         if(token!==generation||disposed)return;
+        assertCurrent(isCurrent);
         requireOutputStage(next);outputStage?.reset();prepareListening(next);listening?.reset(next.listeningTimer);
         const loaded = new Map<string,AudioBuffer>(); let bytes = 0;
         for (const id of new Set(scenePlaybackAssetIds(next))) {
           const buffer = oldBuffers.get(id) ?? await load(id);
           if (token !== generation || disposed) return;
+          assertCurrent(isCurrent);
           bytes += buffer.length*buffer.numberOfChannels*4;
           if (!Number.isSafeInteger(bytes) || bytes > decodedBudgetBytes) throw new SceneValidationError('Audio exceeds the decoded-memory budget');
           loaded.set(id,buffer);
         }
         const prepared = prepareLoops(next,loaded,new Map());
         if (token !== generation || disposed) return;
+        assertCurrent(isCurrent);
         masterEqualizer = createEqualizer(next.masterEqualizer);
         masterEqualizer.filters.at(-1)!.connect(master);
-        const preparedSides=await prepareSides(next,loaded);
+        const preparedSides=await prepareSides(next,loaded,isCurrent);
         if(token!==generation||disposed){discardPreparedSides(preparedSides);return;}
-        const sideFailure=[...preparedSides.values()].find(side=>side.error)?.error;
-        if(sideFailure){discardPreparedSides(preparedSides);throw new SceneValidationError(sideFailure);}
+        try{
+          assertCurrent(isCurrent);
+          const sideFailure=[...preparedSides.values()].find(side=>side.error)?.error;
+          if(sideFailure)throw new SceneValidationError(sideFailure);
+        }catch(failure){discardPreparedSides(preparedSides);throw failure;}
         buffers = loaded; loops = prepared; scene = next; desiredScene = next;sideBuses=preparedSides;
         for(const side of sideBuses.values())side.accepted=true;
         for (const {key,layer,owner,side} of ownedLayers(scene)) graphs.set(key,createGraph(layer,owner,side?sideBuses.get(side)!:null));
@@ -688,8 +701,8 @@ export function createMixer(options:MixerOptions):Mixer {
         throw failure;
       }
     },
-    async updateScene(input) {
-      assertAlive();
+    async updateScene(input,isCurrent) {
+      assertAlive();assertCurrent(isCurrent);
       const next = parseScene(input);
       if (!scene || scene.id !== next.id) throw new SceneValidationError('Load a scene with setScene before editing its playback');
       const token = ++editGeneration;
@@ -698,6 +711,7 @@ export function createMixer(options:MixerOptions):Mixer {
       try {
         // A control command can change desiredScene while a new asset is decoding. Re-read it before committing.
         while (token === editGeneration && !disposed && desiredScene) {
+          assertCurrent(isCurrent);
           const target:Scene = desiredScene;
           let bytes=0;
           for (const id of new Set(scenePlaybackAssetIds(target))) {
@@ -706,11 +720,13 @@ export function createMixer(options:MixerOptions):Mixer {
               try{buffer=await load(id);}
               catch(failure){
                 if(token!==editGeneration||disposed)return;
+                assertCurrent(isCurrent);
                 if(!desiredScene||!scenePlaybackAssetIds(desiredScene).includes(id))break;
                 throw failure;
               }
             }
             if (token !== editGeneration || disposed) return;
+            assertCurrent(isCurrent);
             loaded.set(id,buffer);
             if(target!==desiredScene)break;
             bytes+=buffer.length*buffer.numberOfChannels*Float32Array.BYTES_PER_ELEMENT;
@@ -719,10 +735,10 @@ export function createMixer(options:MixerOptions):Mixer {
           const current:Scene|null = desiredScene;
           if (!current) return;
           if (scenePlaybackAssetIds(current).some(id=>!loaded.has(id))) continue;
-          const preparedSides=await prepareSides(current,loaded);
+          const preparedSides=await prepareSides(current,loaded,isCurrent);
           if(token!==editGeneration||disposed){discardPreparedSides(preparedSides);return;}
           if(current!==desiredScene){discardPreparedSides(preparedSides);continue;}
-          try{reconcileLoaded(current,loaded,preparedSides);}
+          try{assertCurrent(isCurrent);reconcileLoaded(current,loaded,preparedSides,isCurrent);}
           catch(failure){discardPreparedSides(preparedSides);throw failure;}
           error = null; notify();
           return;
@@ -736,8 +752,8 @@ export function createMixer(options:MixerOptions):Mixer {
         throw failure;
       }
     },
-    async play() {
-      assertAlive();
+    async play(isCurrent) {
+      assertAlive();assertCurrent(isCurrent);
       if(outputSnapshot.error)throw new Error(outputSnapshot.error);
       if (state === 'playing'&&!completeIfDue()) return;
       if (pendingPlay) return pendingPlay;
@@ -747,6 +763,7 @@ export function createMixer(options:MixerOptions):Mixer {
       const promise = (async () => {
         if (!offline && context.state !== 'running') await context.resume();
         if (disposed || generation !== token || !scene) return;
+        assertCurrent(isCurrent);
         if (!offline && context.state !== 'running') { state = 'interrupted'; notify(); return; }
         // Resume preserves an expired edit's held release. Only a completed
         // listening session is a fresh replay; legacy transport stays unchanged.
@@ -754,7 +771,10 @@ export function createMixer(options:MixerOptions):Mixer {
         const entries=ownedLayers(scene);
         const starts=entries.map(({key,layer})=>graphs.get(key)!.movement.prepareStart(Math.max(0,at-layer.startSeconds),Math.max(0,layer.startSeconds-at),rewound));
         const playbacks:PreparedPlayback[]=[];
-        try{for(const {key,layer,owner} of entries){const playback=prepareLayer(layer,graphs.get(key)!,at,owner);if(playback)playbacks.push(playback);}}
+        try{
+          for(const {key,layer,owner} of entries){const playback=prepareLayer(layer,graphs.get(key)!,at,owner);if(playback)playbacks.push(playback);}
+          assertCurrent(isCurrent);
+        }
         catch(error){for(const playback of playbacks)playback.dispose();throw error;}
         const smooth=at>0||hasAudibleTail();
         position=at;

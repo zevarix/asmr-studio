@@ -19,10 +19,11 @@ export interface PlaybackSnapshot {
   };
 }
 export interface Mixer {
-  setScene(scene:Scene):Promise<void>;
+  /** Optional request validity prevents stale asynchronous work from being applied. Callers also recheck after awaiting. */
+  setScene(scene:Scene,isCurrent?:()=>boolean):Promise<void>;
   /** Reconcile edits to the loaded scene without restarting unchanged layers or its clock. Latest edit wins. */
-  updateScene(scene:Scene):Promise<void>;
-  play():Promise<void>;
+  updateScene(scene:Scene,isCurrent?:()=>boolean):Promise<void>;
+  play(isCurrent?:()=>boolean):Promise<void>;
   pause():void;
   stop():void;
   apply(command:SceneCommand):void;

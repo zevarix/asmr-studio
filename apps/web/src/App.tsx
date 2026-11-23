@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {applyCommand,transitionBlendAt,type AssetRecord,type Layer,type Scene,type SceneCommand} from '@asmr-studio/contracts';
+import {applyCommand,transitionBlendAt,type AssetRecord,type Layer,type Scene,type SceneCommand,type AssistantDeviceState} from '@asmr-studio/contracts';
 import {createMixer,createWorkletOutputStage,type Mixer,type PlaybackSnapshot} from '@asmr-studio/audio-engine';
 import outputWorkletUrl from '../../../packages/audio-engine/src/output-worklet.ts?worker&url';
 import {MixerView} from './features/mixer/MixerView.js';
@@ -11,6 +11,9 @@ import {createLoopAudioService,type LoopAudioService} from './features/mixer/loo
 import IconDeviceFloppy from '@tabler/icons-react/icons/IconDeviceFloppy';
 import {studioApi,StudioApiError} from './api.js';
 import {TransitionView,type DeckLoadState,type TransitionDeck} from './features/mixer/TransitionView.js';
+import {AssistantControls} from './features/assistant/AssistantControls.js';
+import {useAssistantConnection} from './features/assistant/useAssistantConnection.js';
+import {AssistantControlError} from './features/assistant/executor.js';
 interface Player {
   context: AudioContext;
   engine: Mixer;
@@ -36,6 +39,7 @@ export function App(){
   const [previewStopToken,setPreviewStopToken]=useState(0);
   const [outputMeterSource,setOutputMeterSource]=useState<Mixer|null>(null);
   const player=useRef<Player|null>(null);
+  const audioContext=useRef<AudioContext|null>(null);
   const deckRequest=useRef(0);
   const preparingDeck=useRef<TransitionDeck|null>(null);
   const [deckStates,setDeckStates]=useState(emptyDeckStates);
@@ -51,7 +55,8 @@ export function App(){
   useEffect(()=>()=>{const owned=player.current;player.current=null;
     deckRequest.current++;preparingDeck.current=null;
     startGeneration.current++;pendingStart.current=null;
-    if(owned){owned.unsubscribe();owned.engine.dispose();void owned.context.close();}
+    if(owned){owned.unsubscribe();owned.engine.dispose();}
+    const context=audioContext.current;audioContext.current=null;if(context)void context.close();
   },[]);
   const showPlayback=(owned:Player)=>{
     if(player.current!==owned)return;
@@ -71,12 +76,12 @@ export function App(){
     void pending.done.then(clear,clear);
     return pending.done;
   };
-  const loadScene = async (owned: Player, scene: Scene): Promise<boolean> => {
+  const loadScene = async (owned: Player, scene: Scene, isCurrent?:()=>boolean): Promise<boolean> => {
     const generation = ++owned.loadGeneration;
     owned.ready = false;
     owned.queuedCommands = [];
     try {
-      await owned.engine.setScene(scene);
+      await owned.engine.setScene(scene,isCurrent);
       if (player.current !== owned || owned.loadGeneration !== generation) return false;
       // Edits made while decoding must reach the graph before playback resumes.
       for (const command of owned.queuedCommands) owned.engine.apply(command);
@@ -90,48 +95,51 @@ export function App(){
       throw error;
     }
   };
-  const updatePlayingScene = (scene: Scene) => {
-    const owned = player.current;
-    if (!owned) return;
-    const generation = ++owned.editGeneration;
-    // Saving a copy changes persistence identity, while its live audio graph stays in place.
-    const update = trackUpdate(owned,owned.ready
-      ? owned.engine.updateScene({...scene,id:owned.sceneId ?? scene.id})
-      : loadScene(owned,scene));
-    void update.catch(() => {
-      if(player.current===owned && owned.editGeneration===generation)
+  const updatePlayingScene = (scene:Scene,isCurrent?:()=>boolean):Promise<void> => {
+    const owned=player.current;
+    if(!owned)return Promise.resolve();
+    const generation=++owned.editGeneration;
+    // Return the real update, not the supersedable wait used by the Start button.
+    const update=owned.ready
+      ? owned.engine.updateScene({...scene,id:owned.sceneId??scene.id},isCurrent)
+      : loadScene(owned,scene,isCurrent).then(accepted=>{if(!accepted)throw new AssistantControlError('SUPERSEDED','A newer session replaced this audio request.');});
+    trackUpdate(owned,update);
+    return update.catch(error=>{
+      if(player.current===owned&&owned.editGeneration===generation)
         setAudioError('Playback could not apply the revised mix. Your edits remain here; remove the unavailable sound or stop and start to retry.');
+      throw error;
     });
   };
-  const edit=(command:SceneCommand)=>{
-    try{
-      const next=session.edit(command);
-      setAudioError(null);
-      const owned=player.current;
-      if(!owned)return;
-      if(command.type==='addLayer')updatePlayingScene(next);
-      else if(command.type==='removeLayer'){
-        if(owned.ready){
-          try{owned.engine.apply(command);}
-          catch{/* Reconcile the current draft below if the live graph cannot apply it. */}
-        }
-        // Remove audible playback immediately, then supersede any obsolete decoding wait.
-        updatePlayingScene(next);
-      }
-      else if(owned.ready){
-        try{owned.engine.apply(command);}
-        catch{updatePlayingScene(next);}
-      }else if(command.type==='setLayerLoop'||command.type==='setLayerOccasional')updatePlayingScene(next);
-      else owned.queuedCommands.push(command);
-    }catch{setAudioError('The adjustment could not be applied. Check its settings and try again.');}
+  const editApplied=async(command:SceneCommand,isCurrent?:()=>boolean):Promise<void>=>{
+    if(isCurrent&&!isCurrent())throw new AssistantControlError('EXPIRED','The command is no longer current.');
+    const next=session.edit(command);
+    const version=session.getStateVersion();
+    const guard=isCurrent?()=>isCurrent()&&session.getStateVersion()===version:undefined;
+    setAudioError(null);
+    const owned=player.current;
+    if(!owned)return;
+    if(command.type==='addLayer')await updatePlayingScene(next,guard);
+    else if(command.type==='removeLayer'){
+      if(owned.ready){try{owned.engine.apply(command);}catch{/* Reconcile the complete current draft below. */}}
+      await updatePlayingScene(next,guard);
+    }else if(owned.ready){
+      try{owned.engine.apply(command);}
+      catch{await updatePlayingScene(next,guard);}
+    }else if(guard||command.type==='setLayerLoop'||command.type==='setLayerOccasional')await updatePlayingScene(next,guard);
+    else owned.queuedCommands.push(command);
+    if(guard&&!guard())throw new AssistantControlError('SUPERSEDED','A newer change replaced this adjustment.');
   };
+  const edit=(command:SceneCommand)=>{void editApplied(command).catch(()=>{
+    setAudioError('The adjustment could not be applied to playback. Your draft is still here. Check its settings and try again.');
+  });};
   const addAsset=(asset:AssetRecord,role:Layer['role'])=>{
-    try{const next=session.addAsset(asset,role);setAudioError(null);updatePlayingScene(next);}
+    try{const next=session.addAsset(asset,role);setAudioError(null);void updatePlayingScene(next).catch(()=>{});}
     catch{setAudioError('This recording could not be added to the mix.');}
   };
   const ensurePlayer=():Player=>{
     if(player.current)return player.current;
-    const context=new AudioContext();
+    const context=audioContext.current?.state!=='closed'&&audioContext.current?audioContext.current:new AudioContext();
+    audioContext.current=context;
     const engine=createMixer({context,decodedBudgetBytes:256*1024*1024,
       assetDurationSeconds:id=>assetCatalog.current.find(asset=>asset.id===id)?.durationSeconds,
       createOutputStage:audioContext=>createWorkletOutputStage(audioContext,outputWorkletUrl),loadAsset:async id=>{
@@ -170,6 +178,7 @@ export function App(){
     });
   };
   const cancelDeckLoad=()=>{
+    session.touchState();
     deckRequest.current++;preparingDeck.current=null;
     setDeckStates(previous=>({a:{...previous.a,loading:false,requestedId:null},b:{...previous.b,loading:false,requestedId:null}}));
     restoreCommittedTransition();
@@ -177,6 +186,7 @@ export function App(){
   const chooseDeck=async(deck:TransitionDeck,id:string):Promise<void>=>{
     const original=session.getScene();
     if(!original.transition||session.status==='saving'||session.status==='loading')return;
+    session.touchState();
     const generation=++deckRequest.current;
     const current=()=>deckRequest.current===generation&&session.getScene().id===original.id&&Boolean(session.getScene().transition);
     if(preparingDeck.current)restoreCommittedTransition();
@@ -220,39 +230,56 @@ export function App(){
       }
     }
   };
-  const start=()=>{
-    if(pendingStart.current) return;
+  const resumeAudio=async(context:AudioContext):Promise<void>=>{
+    let timeout:ReturnType<typeof setTimeout>|undefined;
+    try{
+      await Promise.race([context.resume(),new Promise<never>((_,reject)=>{
+        timeout=setTimeout(()=>reject(new AssistantControlError('NEEDS_USER_GESTURE','Press Start listening in this browser to allow audio.')),1500);
+      })]);
+      if(context.state&&context.state!=='running')throw new AssistantControlError('NEEDS_USER_GESTURE','Press Start listening in this browser to allow audio.');
+    }finally{if(timeout)clearTimeout(timeout);}
+  };
+  const startPlayback=(isCurrent?:()=>boolean):Promise<void>=>{
+    if(pendingStart.current)return pendingStart.current;
+    if(isCurrent&&!isCurrent())return Promise.reject(new AssistantControlError('EXPIRED','The command is no longer current.'));
+    const version=session.touchState();
+    const guard=isCurrent?()=>isCurrent()&&session.getStateVersion()===version:undefined;
     setPreviewStopToken(value=>value+1);
     const generation=++startGeneration.current;
-    const current=(owned:Player)=>player.current===owned && startGeneration.current===generation && owned.wantsPlayback;
+    const current=(owned:Player)=>player.current===owned&&startGeneration.current===generation&&owned.wantsPlayback&&(!guard||guard());
     let owned=player.current;
     const task=(async()=>{
       try{
         setAudioError(null);
         owned=ensurePlayer();
         owned.wantsPlayback=true;owned.starting=true;showPlayback(owned);
-        // Resume begins within this click gesture, including while B is still preparing.
-        const resumed=owned.context.resume();
-        await resumed;
+        // resume starts synchronously in a local click or the explicit connection gesture.
+        await resumeAudio(owned.context);
         while(current(owned)){
-          // Re-read after every await: another edit may have superseded the update we waited for.
           if(owned.pendingUpdate&&!(session.getScene().transition&&owned.ready&&preparingDeck.current)){await owned.pendingUpdate.done;continue;}
-          if(!owned.ready){trackUpdate(owned,loadScene(owned,session.getScene()));continue;}
+          if(!owned.ready){trackUpdate(owned,loadScene(owned,session.getScene(),guard));continue;}
           break;
         }
-        if(current(owned))await owned.engine.play();
-      }catch{
-        if(startGeneration.current===generation && (!owned||player.current===owned)){
+        if(!current(owned))throw new AssistantControlError('SUPERSEDED','A newer action stopped this playback request.');
+        await owned.engine.play(guard);
+        if(guard&&!current(owned))throw new AssistantControlError('SUPERSEDED','A newer action stopped this playback request.');
+      }catch(error){
+        if(startGeneration.current===generation&&(!owned||player.current===owned)){
           if(owned)owned.wantsPlayback=false;
-          setAudioError('Audio could not start. Check the recordings and try again.');
+          setAudioError(error instanceof AssistantControlError&&error.code==='NEEDS_USER_GESTURE'
+            ?error.message:'Audio could not start. Check the recordings and try again.');
         }
+        throw error;
       }finally{
-        if(owned && player.current===owned && startGeneration.current===generation){owned.starting=false;showPlayback(owned);}
+        if(owned&&player.current===owned&&startGeneration.current===generation){owned.starting=false;showPlayback(owned);}
       }
     })();
     pendingStart.current=task;
-    void task.finally(()=>{if(pendingStart.current===task)pendingStart.current=null;});
+    const clear=()=>{if(pendingStart.current===task)pendingStart.current=null;};
+    void task.then(clear,clear);
+    return task;
   };
+  const start=()=>{void startPlayback().catch(()=>{});};
   const cancelStart=()=>{
     startGeneration.current++;pendingStart.current=null;
     const owned=player.current;
@@ -264,15 +291,22 @@ export function App(){
     deckRequest.current++;preparingDeck.current=null;setDeckStates(emptyDeckStates());
     if(owned){
       owned.loadGeneration++;owned.editGeneration++;
-      owned.unsubscribe();owned.engine.dispose();void owned.context.close();
+      owned.unsubscribe();owned.engine.dispose();
     }
     setOutputMeterSource(null);setPlayback(idle);setAudioError(null);setPreviewStopToken(value=>value+1);
   };
-  const reload=async()=>{clearPlayer();await session.reload();};
-  const openSession=async(id:string)=>{clearPlayer();await session.openScene(id);};
+  const reload=async()=>{session.touchState();clearPlayer();await session.reload();};
+  const openApplied=async(id:string,isCurrent?:()=>boolean)=>{
+    const opened=await session.openScene(id,isCurrent);
+    if(!opened)throw new AssistantControlError('OPEN_FAILED','The saved session could not be opened. Your current draft is still here.');
+    clearPlayer();
+  };
+  const openSession=async(id:string)=>{session.touchState();try{await openApplied(id);}catch{/* The session hook displays the failure. */}};
   const newSession=()=>{if(session.newScene())clearPlayer();};
   const newTransition=()=>{if(session.newTransition())clearPlayer();};
+  const pause=()=>{session.touchState();cancelStart();player.current?.engine.pause();};
   const stop=()=>{
+    session.touchState();
     setPreviewStopToken(value=>value+1);
     const owned=player.current;
     cancelStart();
@@ -307,6 +341,27 @@ export function App(){
     const snapshot=samplePlayback();
     setBlend(snapshot.transition?.blend??transitionBlendAt(transition,snapshot.positionSeconds));
   };
+  const getAssistantState=(sample=true):AssistantDeviceState=>{
+    const current=session.getSnapshot();
+    const observed=sample?samplePlayback():player.current?.snapshot??idle;
+    const contextState=String(audioContext.current?.state);
+    return {scene:current.scene,stateVersion:current.stateVersion,savedRevision:current.savedRevision,dirty:current.dirty,
+      playback:{state:observed.state,positionSeconds:observed.positionSeconds,error:observed.error,
+        audioContextState:contextState==='running'||contextState==='suspended'||contextState==='closed'||contextState==='interrupted'?contextState:'unknown'}};
+  };
+  const assistant=useAssistantConnection({getState:getAssistantState,
+    isBusy:()=>['loading','saving'].includes(session.getSnapshot().status)||Boolean(preparingDeck.current)||Boolean(pendingStart.current),
+    prepareAudio:async()=>{await resumeAudio(ensurePlayer().context);},
+    edit:editApplied,play:startPlayback,pause,stop,save:session.save,open:openApplied,
+    restore:async(previous,expectedVersion,isCurrent)=>{
+      if(!isCurrent())throw new AssistantControlError('EXPIRED','The command is no longer current.');
+      const next=session.restoreDraft(previous,expectedVersion);
+      const version=session.getStateVersion();
+      const guard=()=>isCurrent()&&session.getStateVersion()===version;
+      await updatePlayingScene(next,guard);
+      if(!guard())throw new AssistantControlError('SUPERSEDED','A newer change replaced this undo.');
+    },
+  });
   const deckBusy=deckStates.a.loading||deckStates.b.loading;
   const sessionBusy=session.status==='saving'||session.status==='loading'||deckBusy;
   const sessionTools=<div className="session-actions">
@@ -335,7 +390,7 @@ export function App(){
         const transition=session.getScene().transition;
         if(transition&&!preparingDeck.current)edit({type:'setTransition',transition:{...transition,durationSeconds}});
       }} onTimedTransition={timedTransition} onCancelTransition={cancelTransition} onCommand={edit} onRename={session.rename}
-      onStart={start} onPause={()=>{cancelStart();player.current?.engine.pause();}} onStop={stop} onRestart={()=>{stop();start();}}/>
+      onStart={start} onPause={pause} onStop={stop} onRestart={()=>{stop();start();}}/>
     :<MixerView scene={session.scene} playback={shownPlayback} outputMeterSource={outputMeterSource}
       loopAudioService={loopAudioService}
       assets={session.assets} libraryTools={<AssetImportForm onImport={session.importFile}/>}
@@ -343,9 +398,11 @@ export function App(){
       exportTools={exportTools}
       onRename={session.rename} onInstallStarterSounds={session.installStarterSounds} previewStopToken={previewStopToken}
       onCommand={edit} onStart={start}
-      onPause={()=>{cancelStart();player.current?.engine.pause();}}
+      onPause={pause}
       onStop={stop}/>}
     </fieldset>
+    <AssistantControls connection={assistant.connection} connecting={assistant.connecting} message={assistant.message}
+      disabled={sessionBusy} state={getAssistantState(false)} onConnect={assistant.connect} onDisconnect={assistant.disconnect}/>
     {missing&&<p role="alert" className="missing-asset">Some recordings are missing from the library. Restore them before listening.</p>}
   </>;
 }

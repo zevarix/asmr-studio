@@ -29,6 +29,44 @@ async function ready() {
 }
 
 describe('saved session switching',()=>{
+  it('versions edits synchronously and preserves saved authority separately from the current draft',async()=>{
+    const {result}=await ready();
+    const initial=result.current.getStateVersion();
+    act(()=>{
+      result.current.rename('Live draft');
+      expect(result.current.getStateVersion()).toBe(initial+1);
+      expect(result.current.getSnapshot()).toMatchObject({dirty:true,savedRevision:null,scene:{title:'Live draft'}});
+    });
+    vi.spyOn(studioApi,'createScene').mockImplementation(async scene=>parseScene({...scene,revision:1}));
+    await act(async()=>result.current.save());
+    expect(result.current.getSnapshot()).toMatchObject({stateVersion:initial+2,savedRevision:1,dirty:false});
+    act(()=>result.current.edit({type:'setMasterGain',gain:.6}));
+    expect(result.current.getSnapshot()).toMatchObject({stateVersion:initial+3,savedRevision:1,dirty:true});
+  });
+
+  it('does not replace edits made during a slow open or accept an expired open guard',async()=>{
+    const {result}=await ready();const pending=deferred<Scene>();
+    vi.mocked(studioApi.getScene).mockReturnValue(pending.promise);
+    let opening!:Promise<Scene|null>;
+    act(()=>{opening=result.current.openScene('other');result.current.rename('Keep newer title');});
+    await act(async()=>{pending.resolve(empty('other','Other'));expect(await opening).toBeNull();});
+    expect(result.current.getSnapshot().scene.title).toBe('Keep newer title');
+    await act(async()=>expect(await result.current.openScene('other',()=>false)).toBeNull());
+    expect(result.current.getSnapshot().scene.title).toBe('Keep newer title');
+  });
+
+  it('restores only the unchanged draft version and refuses an undo after a rename',async()=>{
+    const {result}=await ready();const original=result.current.scene;
+    act(()=>result.current.edit({type:'setMasterGain',gain:.6}));
+    const version=result.current.getStateVersion();
+    act(()=>result.current.restoreDraft(original,version));
+    expect(result.current.scene).toEqual(original);
+    expect(result.current.getStateVersion()).toBe(version+1);
+    act(()=>result.current.rename('Newer edit'));
+    expect(()=>result.current.restoreDraft(original,version+1)).toThrow(/changed/);
+    expect(result.current.scene.title).toBe('Newer edit');
+  });
+
   it('creates an independent transition draft and saves/copies its exact captured revisions',async()=>{
     vi.spyOn(studioApi,'createScene').mockImplementation(async scene=>parseScene({...scene,revision:1}));
     const {result}=await ready();
