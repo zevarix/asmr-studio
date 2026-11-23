@@ -154,7 +154,8 @@ playback; those still need listening and device testing.
 - `tests`: browser tests, generated fixtures, and restart checks.
 
 See [development notes](docs/development.md) for configuration, API behavior,
-and audio-engine details.
+and audio-engine details. The [studio interface guide](docs/interface.md) covers
+control styling, responsive layouts, and accessibility.
 
 ## License and sound credits
 

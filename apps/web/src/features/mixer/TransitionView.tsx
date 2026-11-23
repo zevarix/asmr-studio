@@ -123,7 +123,7 @@ export function TransitionView({scene,savedScenes,deckStates,playback,outputMete
     <section className="transition-blend panel" aria-label="Mix transition controls">
       <div className="panel-head"><h2>Crossfader</h2><span className="count-label">Linear blend</span></div>
       <div className="transition-blend-labels" aria-hidden="true"><span>A <strong>{100-percent}%</strong></span><span>B <strong>{percent}%</strong></span></div>
-      <RangeInput aria-label="Crossfader" min={0} max={100} step={1} value={percent} disabled={!both||preparing}
+      <RangeInput variant="crossfader" aria-label="Crossfader" min={0} max={100} step={1} value={percent} disabled={!both||preparing}
         aria-valuetext={`A ${100-percent} percent, B ${percent} percent`}
         onChange={event=>onBlendChange(Number(event.target.value)/100)}/>
       <p className="transition-help">Move the slider for a manual blend. A manual adjustment holds the new blend and ends a timed transition.</p>

@@ -1,25 +1,32 @@
 .layer-movement { border-top: 1px solid var(--border); margin-top: .9rem; padding-top: .3rem; }
 /* Keep the rotating 18px chevron inside the panel between its settled positions. */
 .layer-movement > summary { font-size: .83rem; padding-inline-end: 4px; }
-.movement-state { min-width: 0; margin-left: auto; color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; text-align: right; }
+.layer-movement[open] > summary { color: var(--accent); }
+.movement-state { min-width: 0; margin-left: auto; padding: .15rem .45rem; border: 1px solid var(--border); border-radius: 5px; background: var(--well-fill, var(--inset)); color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
 .layer-movement > summary .summary-chevron { margin-left: .2rem; }
-.movement-controls { min-inline-size: 0; margin: 0; padding: .35rem 0 0; border: 0; }
+.movement-controls { min-inline-size: 0; margin: .35rem 0 .4rem; padding: .75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--well-fill, var(--inset)); box-shadow: inset 0 1px 3px #0002; }
 .movement-choice { display: grid; grid-template-columns: minmax(0,1fr) minmax(96px,1fr); align-items: center; gap: .75rem; font-size: .83rem; }
 .movement-choice select { width: 100%; font-size: .83rem; }
 .movement-width { margin: .85rem 0; }
 .movement-setting-label { display: flex; align-items: center; justify-content: space-between; gap: .6rem; font-size: .83rem; }
-.movement-setting-label > span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.movement-width input[type="range"] { display: block; width: 100%; height: 32px; }
+.movement-setting-label > span:last-child { color: var(--text); font-weight: 550; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.movement-width input[type="range"] { display: block; width: 100%; }
 .movement-cycle { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .45rem .75rem; font-size: .83rem; }
 .movement-cycle-input { display: flex; align-items: center; gap: .5rem; max-width: 100%; color: var(--muted); font-size: .75rem; }
 .movement-cycle-input input { width: 6.5rem; min-width: 0; font-size: .85rem; font-variant-numeric: tabular-nums; }
 .movement-cycle-input input[aria-invalid="true"] { border-color: #e6c580; }
 .movement-hint, .movement-travel { color: var(--muted); font-size: .73rem; line-height: 1.5; margin: .45rem 0 0; }
-.movement-travel { margin-top: .8rem; }
+.movement-travel { margin-top: .8rem; padding-top: .65rem; border-top: 1px solid var(--border); }
 @media (max-width: 700px) {
-  .movement-choice select, .movement-cycle-input input { min-height: 42px; }
-  .movement-width input[type="range"] { height: 40px; }
+  .movement-choice select, .movement-cycle-input input { min-height: 44px; }
+}
+@media (forced-colors: active) {
+  .layer-movement[open] > summary { color: CanvasText; }
+  .movement-state, .movement-controls { background: Canvas; border-color: CanvasText; box-shadow: none; }
 }
 @media (max-width: 360px) {
-  .movement-state { max-width: 48%; }
+  .layer-movement > summary { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: .35rem .5rem; }
+  .layer-movement > summary .summary-label { grid-column: 1; grid-row: 1; flex-wrap: nowrap; }
+  .layer-movement > summary .summary-chevron { grid-column: 2; grid-row: 1; justify-self: end; margin-left: 0; }
+  .movement-state { grid-column: 1 / -1; grid-row: 2; justify-self: start; max-width: 100%; margin-left: 0; text-align: left; white-space: nowrap; }
 }

@@ -18,7 +18,7 @@ export function Transport({playback,hasLayers,onStart,onPause,onStop}:Props){
   const phase=playback.listeningTimer?.phase;
   const label=phase==='finished'?'Timer finished':friendly[playback.state];
   const fade=playback.state==='playing'?(phase==='fading-in'?'Fading in':phase==='fading-out'?'Fading out':''):'';
-  return <section className="transport" aria-label="Playback controls">
+  return <section className="transport" data-playback={playback.state} aria-label="Playback controls">
     <div className="transport-buttons">
       <button type="button" className="primary" disabled={!hasLayers||playback.state==='loading'||playback.state==='playing'}
         onClick={onStart}><IconPlayerPlay size={18} stroke={1.7} aria-hidden="true"/>Start listening</button>

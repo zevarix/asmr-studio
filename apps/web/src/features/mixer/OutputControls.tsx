@@ -34,14 +34,18 @@ function OutputChannel({name,letter,peak,heldPeak,clipped}:{
 }) {
   const value=meterValue(peak);
   const held=decibels(heldPeak);
+  const level=(value-floorDb)/-floorDb*100;
   const marker=(meterValue(heldPeak)-floorDb)/-floorDb*100;
   return <div className={'output-channel'+(clipped?' output-channel--full-scale':'')}>
     <span className="output-channel-letter" aria-hidden="true">{letter}</span>
-    <div className="output-meter-track">
-      <meter min={floorDb} max={0} low={-12} high={-3} optimum={-24} value={value}
-        aria-label={`${name} output level`}
-        aria-valuetext={`${dbText(decibels(peak))} decibels full scale; held peak ${dbText(held)} decibels full scale`}/>
-      {heldPeak>0&&<span className="output-held-marker" aria-hidden="true" style={{'--peak-position':`${marker}%`} as CSSProperties}/>}
+    <div className="output-meter-well">
+      <div className="output-meter-track">
+        <meter min={floorDb} max={0} low={-12} high={-3} optimum={-24} value={value}
+          aria-label={`${name} output level`}
+          aria-valuetext={`${dbText(decibels(peak))} decibels full scale; held peak ${dbText(held)} decibels full scale`}/>
+        <span className="output-meter-lights" aria-hidden="true" style={{'--meter-level':`${level}%`} as CSSProperties}/>
+        {heldPeak>0&&<span className="output-held-marker" aria-hidden="true" style={{'--peak-position':`${marker}%`} as CSSProperties}/>}
+      </div>
     </div>
     <span className="output-peak-value" aria-label={`${name} held peak`}>{dbText(held)}<span className="output-unit"> dBFS</span></span>
   </div>;

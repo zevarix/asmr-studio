@@ -4,9 +4,10 @@
   position: relative;
   display: grid;
   grid-template-rows: var(--handle-size) 34px var(--handle-size);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
+  border: 1px solid var(--control-border);
+  border-radius: 9px;
+  background: var(--well-fill, var(--inset));
+  box-shadow: inset 0 2px 7px #0005, 0 1px 0 var(--edge-light, #d9efd113);
 }
 .loop-waveform > svg {
   position: absolute;
@@ -15,8 +16,8 @@
   height: calc(100% - var(--handle-size));
   pointer-events: none;
 }
-.loop-waveform-selection { fill: var(--selected); }
-.loop-waveform-overlap { fill: #597e64; }
+.loop-waveform-selection { fill: var(--selected); fill-opacity: .8; }
+.loop-waveform-overlap { fill: #6c9577; fill-opacity: .65; }
 .loop-waveform-axis { stroke: var(--control-border); stroke-opacity: .55; }
 .loop-waveform-peaks { stroke: var(--accent); stroke-width: .8px; }
 .loop-waveform-marker { stroke: var(--accent); }
@@ -64,14 +65,15 @@
   left: var(--handle-position);
   transform: translate(-50%, -50%);
   width: 36px;
-  padding-block: .16rem;
+  padding-block: .22rem;
   border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--accent);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #dae9d2, var(--accent) 45%, #9fb797);
+  box-shadow: inset 0 1px 0 #f0f8e977, 0 2px 3px #0006;
   color: var(--accent-ink);
   font-size: .67rem;
   font-weight: 650;
-  line-height: 1.25;
+  line-height: 1.3;
   text-align: center;
 }
 .loop-waveform-handle input[type="range"]:focus-visible + .loop-waveform-grip-track .loop-waveform-grip {
@@ -85,8 +87,12 @@
 .loop-details .loop-waveform-help { font-size: .76rem; }
 .loop-details .loop-editor-error { color: #ffce9d; }
 @media (forced-colors: active) {
+  .loop-waveform { background: Canvas; border-color: CanvasText; box-shadow: none; }
+  .loop-waveform-selection { fill: Highlight; fill-opacity: .2; }
   .loop-waveform-overlap { fill: Highlight; fill-opacity: .45; }
   .loop-waveform-axis, .loop-waveform-peaks, .loop-waveform-marker { stroke: CanvasText; }
-  .loop-waveform-grip { border-color: ButtonText; }
+  .loop-waveform-grip { background: ButtonFace; color: ButtonText; border-color: ButtonText; box-shadow: none; }
+  .loop-waveform-handle input[type="range"]:disabled + .loop-waveform-grip-track { opacity: 1; }
+  .loop-waveform-handle input[type="range"]:disabled + .loop-waveform-grip-track .loop-waveform-grip { color: GrayText; border-color: GrayText; }
   .loop-waveform-handle input[type="range"]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; }
 }

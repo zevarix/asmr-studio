@@ -55,6 +55,8 @@ function LoopControls({layer,durationSeconds,onCommand,loopEditorOpen,onLoopEdit
 export function LayerControls({layer,assets=[],label,durationSeconds,onCommand,loopEditorOpen,onLoopEditorOpenChange,waveform,loopPreview}:Props) {
   const equalizer=layer.equalizer;
   const toneState=equalizer?.bypassed?'Bypassed':equalizer&&(equalizer.bassDb!==0||equalizer.midDb!==0||equalizer.trebleDb!==0)?'Adjusted':'Flat';
+  const panPercent=Math.round(layer.pan*100);
+  const panText=layer.pan===0?'Center':layer.pan<0?'Left '+Math.round(-layer.pan*100)+'%':'Right '+Math.round(layer.pan*100)+'%';
   return <fieldset className="layer" aria-label={roleNames[layer.role]+': '+layer.id}>
     <div className="layer-heading"><SoundIcon name={label??layer.id} role={layer.role}/><span className="layer-title"><strong>{label??layer.id}</strong><span className="layer-kind">{roleNames[layer.role]}</span></span></div>
     <label className="level">
@@ -70,9 +72,13 @@ export function LayerControls({layer,assets=[],label,durationSeconds,onCommand,l
     </div>
     <label className="level">
       <span>Stereo position</span>
-      <RangeInput aria-label="Stereo position" min="-100" max="100" step="1" value={Math.round(layer.pan*100)}
-        onChange={event=>onCommand({type:'setLayerPan',layerId:layer.id,pan:Number(event.target.value)/100})}/>
-      <span className="readout">{layer.pan===0?'Center':layer.pan<0?'Left '+Math.round(-layer.pan*100)+'%':'Right '+Math.round(layer.pan*100)+'%'}</span>
+      <span className="pan-control">
+        <RangeInput variant="pan" aria-label="Stereo position" min="-100" max="100" step="1" value={panPercent}
+          aria-valuetext={panText.replace('%',' percent')}
+          onChange={event=>onCommand({type:'setLayerPan',layerId:layer.id,pan:Number(event.target.value)/100})}/>
+        <span className="pan-scale" aria-hidden="true"><span>L</span><span>Center</span><span>R</span></span>
+      </span>
+      <span className="readout">{panText}</span>
     </label>
     <MovementControls value={layer.movement} center={layer.pan} label={(label??layer.id)+' movement'}
       onChange={movement=>onCommand({type:'setLayerMovement',layerId:layer.id,movement})}/>
