@@ -20,6 +20,9 @@ ordinary sessions start with limiting off.
 
 ## Using the knobs
 
+The dial's marker points to the current setting. The lit arc starts at the top
+(0 dB): left shows a reduction, and right shows a boost. At 0 dB the arc is unlit.
+
 - Drag around a knob clockwise to increase a band, or counterclockwise to decrease
   it. Clicking a knob does not jump to a new value. The knob stops at either limit
   and responds immediately when you turn back.

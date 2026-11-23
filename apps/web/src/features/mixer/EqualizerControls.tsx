@@ -71,6 +71,8 @@ function EqualizerKnob({band,value,onChange,label,disabled,helpId}:{
   const input = useRef<HTMLInputElement>(null);
   const drag = useRef<Drag|null>(null);
   const rotation = -SWEEP_DEGREES / 2 + (value - EQ_MIN_DB) / (EQ_MAX_DB - EQ_MIN_DB) * SWEEP_DEGREES;
+  const angle = rotation * Math.PI / 180;
+  const arcEnd = `${36 + 34 * Math.sin(angle)} ${36 - 34 * Math.cos(angle)}`;
 
   const finishDrag = () => {
     const current = drag.current;
@@ -152,9 +154,32 @@ function EqualizerKnob({band,value,onChange,label,disabled,helpId}:{
           if (value !== 0) onChange(0);
         }}/>
       <svg className="eq-knob-visual" viewBox="0 0 72 72" aria-hidden="true" focusable="false" fill="none">
+        <defs>
+          <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="1" y2="1">
+            <stop className="eq-knob-rim-light"/>
+            <stop className="eq-knob-rim-mid" offset=".45"/>
+            <stop className="eq-knob-rim-dark" offset="1"/>
+          </linearGradient>
+          <radialGradient id={`${id}-face`} cx=".32" cy=".2" r=".85">
+            <stop className="eq-knob-face-light"/>
+            <stop className="eq-knob-face-mid" offset=".55"/>
+            <stop className="eq-knob-face-dark" offset="1"/>
+          </radialGradient>
+        </defs>
         <path className="eq-knob-arc" d="M 11.958 60.042 A 34 34 0 1 1 60.042 60.042"/>
+        {value !== 0 && <path className="eq-knob-value-arc" d={`M 36 2 A 34 34 0 0 ${value > 0 ? 1 : 0} ${arcEnd}`}/>}
+        {[-135,-90,-45,45,90,135].map(tick =>
+          <path key={tick} className="eq-knob-tick" d="M 36 4.5 V 6.5" transform={`rotate(${tick} 36 36)`}/>
+        )}
         <path className="eq-knob-neutral" d="M 36 -4 V -1"/>
-        <path className="eq-knob-indicator" d="M 36 32 V 7" transform={`rotate(${rotation} 36 36)`}/>
+        <ellipse className="eq-knob-shadow" cx="36" cy="39" rx="28" ry="28"/>
+        <circle className="eq-knob-rim" cx="36" cy="36" r="28" fill={`url(#${id}-rim)`}/>
+        <circle className="eq-knob-grip" cx="36" cy="36" r="26.5"/>
+        <circle className="eq-knob-face" cx="36" cy="36" r="24.5" fill={`url(#${id}-face)`}/>
+        <g transform={`rotate(${rotation} 36 36)`}>
+          <path className="eq-knob-indicator-shadow" d="M 36 24 V 14"/>
+          <path className="eq-knob-indicator" d="M 36 24 V 14"/>
+        </g>
       </svg>
     </div>
     <output className="eq-value" htmlFor={id} aria-hidden="true">{signedValue(value)} dB</output>
