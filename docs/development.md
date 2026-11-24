@@ -12,6 +12,7 @@ npm test
 npm run typecheck
 npm run test:browser:install
 npm run test:e2e
+npm run test:built
 npm run test:restart
 ```
 
@@ -29,15 +30,36 @@ End-to-end tests start temporary API and Vite processes on loopback ports 4319
 and 4318. Existing listeners are not reused. The test stack stops its own
 processes and removes its temporary data when it exits.
 
+`npm run test:built` builds the complete application and reuses the listening,
+save/reopen, editor-conflict, and WAV-export browser journeys against the built
+interface. It starts only the combined server on port 4318, with temporary data.
+Set `ASMR_TEST_PORT` to an unused port when a listening session is already open.
+The audio-analysis browser tests continue to use Vite to load their source modules.
+
 ## Local service configuration
 
-The [README](../README.md#run-locally) starts the API on port 4319 and Vite on
-4318. Vite proxies `/api` requests to the API while preserving the browser's
-Host header. For API-only development, the server defaults to port 4317.
+The [README](../README.md#run-locally) uses `npm start` to serve the built web
+interface and API from one loopback process on port 4318. The server's
+`--serve-ui` flag selects this mode and requires an existing web build. Only
+the built entry point and supported assets are registered as public routes;
+unknown API and filesystem paths remain 404s. Built files are loaded at startup
+and retain the existing no-store and nosniff headers.
+
+For editing with Vite, start the API in one terminal:
+
+```sh
+ASMR_DATA_DIR=/path/to/private/studio-data PORT=4319 \
+ASMR_ALLOWED_ORIGIN=http://127.0.0.1:4318 npm start --workspace=@asmr-studio/server
+```
+
+Then run `npm run dev:local` in another terminal. Vite proxies `/api` requests to
+port 4319 while preserving the browser's Host header. API-only mode without the
+flag still defaults to port 4317. Use either the built studio or this development
+pair on a port at one time; the app does not take over existing listeners.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `PORT` | `4317` | API port; the listener binds to `127.0.0.1`. |
+| `PORT` | `4318` with `--serve-ui`; otherwise `4317` | Local port; the listener binds to `127.0.0.1`. |
 | `ASMR_DATA_DIR` | `~/.local/share/asmr-studio` | SQLite database and managed media. |
 | `ASMR_ALLOWED_ORIGIN` | `http://127.0.0.1:<PORT>` | Exact allowed Host/Origin; use `http://127.0.0.1:4318` with Vite. |
 | `ASMR_MAX_UPLOAD_BYTES` | `268435456` | Maximum bytes per upload. |
@@ -86,6 +108,11 @@ Finished WAV exports run through a persistent, sequential job queue in the local
 server. Requests snapshot an exact saved revision and its assets. Progress,
 cancellation, restart behavior, download routes, and rendering semantics are
 documented in [finished mixes](exports.md).
+
+`npm run backup -- create <new-folder>` takes an online SQLite snapshot and
+copies referenced audio and retained starter originals/credits. `verify` checks
+the complete folder; `restore` creates a new library without replacing an
+existing destination. See [backup and restore](backup-and-restore.md).
 
 ## Optional assistant controls
 
@@ -180,7 +207,7 @@ sources; duration changes preallocate replacement sources and preserve their
 elapsed offsets. See [timer behavior](listening-timer.md) and the
 [implementation plan](listening-timer-plan.md).
 
-Fade and loop quality, genuine whispered speech, and phone background/screen-off
-playback need real listening and device checks. Signal tests verify gain, stereo
-channels, silence, timing, and cleanup, not perceived sound quality or headphone
-loudness.
+Desktop listening and interface acceptance is complete. Genuine generated
+whispering and physical phone background/screen-off playback remain separate
+unproven capabilities. Signal tests verify gain, stereo channels, silence,
+timing, and cleanup, not perceived sound quality or headphone loudness.

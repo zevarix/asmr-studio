@@ -82,34 +82,29 @@ npm ci
 npm run build
 ```
 
-Start the API in one terminal, choosing a data directory outside the repository.
+Start the built studio, choosing a data directory outside the repository.
 On macOS or Linux:
 
 ```sh
 ASMR_DATA_DIR="$HOME/.local/share/asmr-studio" \
-PORT=4319 \
-ASMR_ALLOWED_ORIGIN=http://127.0.0.1:4318 \
-npm start --workspace=@asmr-studio/server
+PORT=4318 \
+npm start
 ```
 
 On Windows PowerShell:
 
 ```powershell
 $env:ASMR_DATA_DIR = Join-Path $env:LOCALAPPDATA 'asmr-studio'
-$env:PORT = '4319'
-$env:ASMR_ALLOWED_ORIGIN = 'http://127.0.0.1:4318'
-npm start --workspace=@asmr-studio/server
+$env:PORT = '4318'
+npm start
 ```
 
-Start the web app in a second terminal from the same repository directory:
-
-```sh
-npm run dev:local
-```
-
-Open **http://127.0.0.1:4318** on the same computer. Both processes bind to
-loopback; remote access and multi-user authentication are not implemented.
-Configuration options are in [.env.example](.env.example).
+Open **http://127.0.0.1:4318** on the same computer. One process serves the built
+interface and API on loopback. Keep the terminal open while listening; Ctrl+C
+stops the studio. Remote access and multi-user authentication are not implemented.
+Configuration options are in [.env.example](.env.example). See
+[local installation and maintenance](docs/local-installation.md) for updates and
+recovery, or [development notes](docs/development.md) for the Vite development setup.
 
 Choose **Add starter sounds**, select a few sounds, and press **Start listening**.
 The starter collection contains rain, fireplace, wind, waves, birds, a stream,
@@ -137,6 +132,21 @@ Existing recordings, saved sessions, and earlier credits are preserved.
 Use **Import your audio** for additional recordings. Keep recordings and
 databases out of Git.
 
+## Back up your library
+
+Save your session, then create a verified backup in a new folder:
+
+```sh
+npm run backup -- create /path/to/backups/my-studio-backup
+npm run backup -- verify /path/to/backups/my-studio-backup
+```
+
+Set `ASMR_DATA_DIR` to the same directory used by the running studio when it is
+customized. The backup includes saved sessions, captured transition mixes,
+recordings, and source metadata. Restore always uses a new data folder and
+preserves your existing library. See [backup and restore](docs/backup-and-restore.md)
+for restore commands, exclusions, and private-storage guidance.
+
 ## Tests
 
 ```sh
@@ -144,6 +154,7 @@ npm test
 npm run typecheck
 npm run test:browser:install
 npm run test:e2e
+npm run test:built
 npm run test:restart
 ```
 
