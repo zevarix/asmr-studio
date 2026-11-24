@@ -60,7 +60,9 @@ async function createMix(page:Page,baseURL:string|undefined) {
   return (await(await page.request.get('/api/scenes/'+scene.id)).json()) as Scene;
 }
 
-test('theme changes preserve a playing mix and persist through reloads and transition views',async({page,baseURL},testInfo)=>{
+test('colors and modes preserve a playing mix and persist through reloads and transition views',async({page,baseURL},testInfo)=>{
+  test.setTimeout(40_000);
+  await page.emulateMedia({colorScheme:'light'});
   await page.setViewportSize({width:1280,height:1000});
   await observeAudio(page);
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
@@ -71,6 +73,7 @@ test('theme changes preserve a playing mix and persist through reloads and trans
   });
   const trigger=page.getByRole('button',{name:/^Appearance/});
   await expect(page.locator('html')).toHaveAttribute('data-theme','sage');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','dark');
   await page.getByRole('button',{name:'Start listening',exact:true}).click();
   await expect(page.getByRole('region',{name:'Playback controls'}).getByRole('status')).toHaveText('Playing');
   await expect.poll(()=>page.getByRole('meter',{name:'Left output level'}).evaluate(node=>(node as HTMLMeterElement).value)).toBeGreaterThan(-60);
@@ -78,23 +81,35 @@ test('theme changes preserve a playing mix and persist through reloads and trans
   expect(before.loops).toBe(1);
   await trigger.click();
   const palettes=[];
-  for(const name of themes){
-    await page.getByRole('radio',{name,exact:true}).check();
-    await expect(page.locator('html')).toHaveAttribute('data-theme',name.toLowerCase());
-    await expect(page.getByRole('slider',{name:'Master volume',exact:true})).toHaveValue('50');
-    await expect(page.getByText('Unsaved changes',{exact:true})).not.toBeVisible();
-    palettes.push(await page.evaluate(()=>({
-      canvas:getComputedStyle(document.documentElement).backgroundColor,
-      panel:getComputedStyle(document.querySelector('.session')!).backgroundImage,
-      dial:getComputedStyle(document.querySelector('.eq-knob-face-light')!).stopColor,
-      meter:getComputedStyle(document.querySelector('.output-meter-lights')!,'::before').backgroundImage,
-    })));
+  for(const mode of ['Dark','Light']){
+    await page.getByRole('radio',{name:mode,exact:true}).check();
+    await expect(page.locator('html')).toHaveAttribute('data-color-mode',mode.toLowerCase());
+    expect(await page.locator('html').evaluate(node=>getComputedStyle(node).colorScheme)).toBe(mode.toLowerCase());
+    for(const name of themes){
+      await page.getByRole('radio',{name,exact:true}).check();
+      await expect(page.locator('html')).toHaveAttribute('data-theme',name.toLowerCase());
+      await expect(page.getByRole('slider',{name:'Master volume',exact:true})).toHaveValue('50');
+      await expect(page.getByText('Unsaved changes',{exact:true})).not.toBeVisible();
+      palettes.push(await page.evaluate(()=>({
+        mode:document.documentElement.dataset.colorMode,
+        canvas:getComputedStyle(document.documentElement).backgroundColor,
+        panel:getComputedStyle(document.querySelector('.session')!).backgroundImage,
+        dial:getComputedStyle(document.querySelector('.eq-knob-face-light')!).stopColor,
+        meter:getComputedStyle(document.querySelector('.output-meter-lights')!,'::before').backgroundImage,
+      })));
+    }
   }
+  await page.getByRole('radio',{name:'System',exact:true}).check();
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
+  await page.emulateMedia({colorScheme:'dark'});
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','dark');
+  await page.emulateMedia({colorScheme:'light'});
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
   await expect(trigger).toHaveAttribute('aria-expanded','false');
-  for(const material of ['canvas','panel','dial'] as const)expect(new Set(palettes.map(palette=>palette[material])).size).toBe(6);
-  expect(new Set(palettes.map(palette=>palette.meter)).size).toBe(1);
+  for(const material of ['canvas','panel','dial'] as const)expect(new Set(palettes.map(palette=>palette[material])).size).toBe(12);
+  for(const mode of ['dark','light'])expect(new Set(palettes.filter(palette=>palette.mode===mode).map(palette=>palette.meter)).size).toBe(1);
   await expect.poll(async()=>(await audioSnapshot(page)).time).toBeGreaterThan(before.time+.3);
   const after=await audioSnapshot(page);
   expect(after).toMatchObject({contexts:before.contexts,created:before.created,starts:before.starts,stops:before.stops,loops:1,state:'running'});
@@ -105,21 +120,40 @@ test('theme changes preserve a playing mix and persist through reloads and trans
   await page.reload();
   await expect(page.getByRole('textbox',{name:'Session name'})).toHaveValue(saved.title);
   await expect(page.locator('html')).toHaveAttribute('data-theme','graphite');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode-preference','system');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
   await expect(trigger).toHaveAccessibleName('Appearance Graphite');
+  await page.emulateMedia({colorScheme:'dark'});
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','dark');
+  await trigger.click();
+  await expect(page.getByRole('radio',{name:'System',exact:true})).toBeChecked();
+  await page.getByRole('radio',{name:'Light',exact:true}).check();
+  await page.emulateMedia({colorScheme:'light'});
+  await page.emulateMedia({colorScheme:'dark'});
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme','graphite');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode-preference','light');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
+  await expect(page.getByRole('button',{name:'New transition',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'New transition',exact:true}).click();
   await expect(page.getByRole('region',{name:'Current transition arrangement',exact:true})).toBeVisible();
   await trigger.click();
   await expect(page.getByRole('radio',{name:'Graphite',exact:true})).toBeChecked();
+  await expect(page.getByRole('radio',{name:'Light',exact:true})).toBeChecked();
   await page.getByRole('radio',{name:'Ember',exact:true}).check();
   await page.getByRole('heading',{name:'ASMR Studio',exact:true}).click();
   await expect(trigger).toHaveAttribute('aria-expanded','false');
   await page.goto('/?scene='+saved.id);
   await expect(page.getByRole('textbox',{name:'Session name'})).toHaveValue(saved.title);
   await expect(page.locator('html')).toHaveAttribute('data-theme','ember');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
   expect(errors).toEqual([]);
 });
 
 test('appearance choices support keyboard navigation, narrow screens and forced colors',async({page,baseURL},testInfo)=>{
+  await page.emulateMedia({colorScheme:'light'});
   await createMix(page,baseURL);
   const trigger=page.getByRole('button',{name:/^Appearance/});
   await trigger.focus();await trigger.press('Enter');
@@ -129,7 +163,17 @@ test('appearance choices support keyboard navigation, narrow screens and forced 
   const ocean=page.getByRole('radio',{name:'Ocean',exact:true});
   await expect(ocean).toBeFocused();await expect(ocean).toBeChecked();
   await expect(page.locator('html')).toHaveAttribute('data-theme','ocean');
-  await ocean.press('Escape');await expect(trigger).toBeFocused();
+  const light=page.getByRole('radio',{name:'Light',exact:true});
+  await light.check();await light.focus();await light.press('ArrowRight');
+  const dark=page.getByRole('radio',{name:'Dark',exact:true});
+  await expect(dark).toBeFocused();await expect(dark).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','dark');
+  await dark.press('ArrowRight');
+  const system=page.getByRole('radio',{name:'System',exact:true});
+  await expect(system).toBeFocused();await expect(system).toBeChecked();
+  await expect(ocean).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
+  await system.press('Escape');await expect(trigger).toBeFocused();
 
   for(const width of [390,320]){
     await page.setViewportSize({width,height:844});await trigger.click();
@@ -145,6 +189,14 @@ test('appearance choices support keyboard navigation, narrow screens and forced 
     }
     await page.keyboard.press('Escape');
   }
+  await page.setViewportSize({width:320,height:540});await trigger.click();
+  const panel=page.locator('.appearance-panel');
+  const bounds=await panel.boundingBox();
+  expect(bounds!.y).toBeGreaterThanOrEqual(0);expect(bounds!.y+bounds!.height).toBeLessThanOrEqual(540);
+  await page.getByRole('radio',{name:'Graphite',exact:true}).focus();
+  await expect(page.getByRole('radio',{name:'Graphite',exact:true})).toBeInViewport();
+  await light.focus();await expect(light).toBeInViewport();
+  await page.keyboard.press('Escape');
   if(testInfo.project.name==='chromium'){
     await page.emulateMedia({forcedColors:'active'});await trigger.click();
     await expect(ocean).toBeChecked();await expect(ocean).toBeFocused();
@@ -155,17 +207,24 @@ test('appearance choices support keyboard navigation, narrow screens and forced 
 });
 
 test('themes remain usable when browser storage is unavailable',async({page,baseURL})=>{
+  await page.emulateMedia({colorScheme:'light'});
   await page.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Storage unavailable','SecurityError');}}));
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
   await createMix(page,baseURL);
   await expect(page.locator('html')).toHaveAttribute('data-theme','sage');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','dark');
   await page.getByRole('button',{name:/^Appearance/}).click();
   await page.getByRole('radio',{name:'Rose',exact:true}).check();
+  await page.getByRole('radio',{name:'Light',exact:true}).check();
   await expect(page.locator('html')).toHaveAttribute('data-theme','rose');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
+  await expect(page.getByText('Applied for this visit.',{exact:true})).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('button',{name:'New transition',exact:true}).click();
   await expect(page.getByRole('button',{name:'Appearance Rose',exact:true})).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','light');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme','sage');
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode','dark');
   expect(errors).toEqual([]);
 });

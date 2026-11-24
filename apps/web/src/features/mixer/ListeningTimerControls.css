@@ -9,7 +9,7 @@
 .timer-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .8rem; }
 .timer-fields label { display: grid; gap: .4rem; min-width: 0; font-size: .85rem; }
 .timer-fields input { width: 100%; min-height: 44px; font-variant-numeric: tabular-nums; }
-.timer-fields input[aria-invalid="true"] { border-color: #e6c580; }
+.timer-fields input[aria-invalid="true"] { border-color: var(--validation); }
 .timer-help { color: var(--muted); font-size: .78rem; line-height: 1.6; margin: .8rem 0; }
 .timer-actions { display: flex; flex-wrap: wrap; gap: .6rem .9rem; align-items: center; padding-top: .7rem; border-top: 1px solid var(--border); }
 .timer-actions button { min-height: 44px; }

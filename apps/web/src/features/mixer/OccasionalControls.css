@@ -8,8 +8,8 @@
 .occasional-pauses { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .6rem; }
 .occasional-pauses label, .occasional-search { display: grid; gap: .35rem; min-width: 0; font-size: .78rem; }
 .occasional-pauses input, .occasional-search input, .occasional-add select { width: 100%; min-width: 0; font-size: .83rem; }
-.occasional-pauses input[aria-invalid="true"] { border-color: #e6c580; }
-.occasional-error { color: #e6c580; font-size: .75rem; }
+.occasional-pauses input[aria-invalid="true"] { border-color: var(--validation); }
+.occasional-error { color: var(--validation); font-size: .75rem; }
 .occasional-apply, .occasional-new { font-size: .78rem; }
 .occasional-alternates { margin-block: 1rem; padding-block: .85rem; border-block: 1px solid var(--border); }
 .occasional-alternates h3 { display: flex; justify-content: space-between; gap: .6rem; font-size: .83rem; margin: 0; }

@@ -16,8 +16,10 @@ Adding and removing sounds while listening preserves the other layers and the
 playback clock. Name, save, copy, and reopen sessions from the app.
 
 Open **Appearance** beside the studio heading to choose Sage, Ocean, Amethyst,
-Ember, Rose, or Graphite. Each theme coordinates the panels, knobs, and faders;
-your choice is remembered in this browser. See [studio appearance](docs/interface.md#appearance).
+Ember, Rose, or Graphite, then select **Light**, **Dark**, or **System**. Each color
+coordinates the panels, knobs, and faders in either mode. System follows your
+device's appearance; both choices are remembered in this browser.
+See [studio appearance](docs/interface.md#appearance).
 
 Shape the whole mix with the Bass, Mid, and Treble knobs in **Master equalizer**,
 or open **Equalizer** on a single layer. Tone settings stay with the saved session

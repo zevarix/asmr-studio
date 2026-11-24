@@ -48,6 +48,11 @@
   --signal-playing-glow: #bdd6b633;
   --signal-paused: #efcb88;
   --signal-error: #f5aa83;
+  --signal-clipped: #ffbe96;
+  --validation: #e6c580;
+  --meter-marker: var(--text);
+  --link-hover: white;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bac2c8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
   --panel-top: color-mix(in srgb, var(--hover) 80%, var(--surface));
   --panel-bottom: color-mix(in srgb, var(--surface) 25%, var(--inset));
@@ -320,4 +325,157 @@
   --meter-edge: #0e1115;
   --meter-readout: #171b20;
   --waveform-overlap: #8795a8;
+}
+
+/* Brightness is independent of the palette. Repeat the light material scope on
+   swatches so each preview resolves its own colors, including the Sage defaults. */
+:root[data-color-mode="light"],
+:root[data-color-mode="light"] [data-theme] {
+  color-scheme: light;
+  --light-hue: #719779;
+  --light-text: #1b2b20;
+  --light-muted: #405244;
+  --light-accent: #315b3b;
+  --light-accent-top: #41684a;
+  --light-accent-bottom: #23452d;
+
+  --canvas: color-mix(in srgb, var(--light-hue) 8%, #f8f9f7);
+  --surface: color-mix(in srgb, var(--light-hue) 5%, white);
+  --inset: color-mix(in srgb, var(--light-hue) 11%, white);
+  --hover: color-mix(in srgb, var(--light-hue) 18%, white);
+  --selected: color-mix(in srgb, var(--light-hue) 22%, white);
+  --text: var(--light-text);
+  --muted: var(--light-muted);
+  --border: color-mix(in srgb, var(--light-accent) 35%, white);
+  --control-border: color-mix(in srgb, var(--light-accent) 75%, white);
+  --accent: var(--light-accent);
+  --accent-ink: white;
+  --accent-light: var(--light-accent-top);
+  --accent-dark: var(--light-accent-bottom);
+  --control-well: color-mix(in srgb, var(--light-hue) 23%, white);
+  --control-edge: color-mix(in srgb, var(--light-accent) 68%, white);
+  --cap-light: color-mix(in srgb, var(--light-hue) 13%, white);
+  --cap-mid: color-mix(in srgb, var(--light-hue) 32%, white);
+  --cap-low: color-mix(in srgb, var(--light-hue) 42%, white);
+  --cap-dark: color-mix(in srgb, var(--light-hue) 58%, white);
+  --cap-border: var(--control-border);
+  --cap-stripe: var(--light-text);
+  --cap-hover: var(--accent);
+  --knob-shadow: color-mix(in srgb, var(--light-text) 65%, white);
+  --knob-rim-light: white;
+  --knob-rim-mid: color-mix(in srgb, var(--light-hue) 62%, white);
+  --knob-rim-dark: var(--control-border);
+  --knob-grip: var(--accent);
+  --knob-face-border: white;
+  --knob-face-light: color-mix(in srgb, var(--light-hue) 10%, white);
+  --knob-face-mid: color-mix(in srgb, var(--light-hue) 30%, white);
+  --knob-face-dark: color-mix(in srgb, var(--light-hue) 50%, white);
+  --knob-indicator-shadow: color-mix(in srgb, var(--light-hue) 15%, white);
+  --meter-readout: var(--inset);
+  --meter-marker: white;
+  --waveform-overlap: color-mix(in srgb, var(--light-hue) 65%, white);
+
+  --focus: #895000;
+  --warning: #7c4111;
+  --warning-border: #996727;
+  --warning-surface: #fff3dc;
+  --validation: #824b10;
+  --signal-playing: #365e36;
+  --signal-playing-glow: #365e3633;
+  --signal-paused: #895000;
+  --signal-error: #a13d1a;
+  --signal-clipped: #993b12;
+
+  --panel-top: color-mix(in srgb, var(--light-hue) 12%, white);
+  --panel-bottom: color-mix(in srgb, var(--light-hue) 9%, white);
+  --well-top: color-mix(in srgb, var(--light-hue) 16%, white);
+  --button-top: color-mix(in srgb, var(--light-hue) 7%, white);
+  --button-middle: color-mix(in srgb, var(--light-hue) 16%, white);
+  --button-bottom: color-mix(in srgb, var(--light-hue) 24%, white);
+  --tile-top: color-mix(in srgb, var(--light-hue) 8%, white);
+  --selected-top: color-mix(in srgb, var(--light-hue) 17%, white);
+  --layer-top: var(--tile-top);
+  --panel-border: var(--border);
+  --layer-border: color-mix(in srgb, var(--light-accent) 45%, white);
+  --selected-border: var(--accent);
+  --range-track: color-mix(in srgb, var(--light-hue) 65%, white);
+  --primary-fill: linear-gradient(180deg, var(--accent-light), var(--accent) 50%, var(--accent-dark));
+  --primary-hover-fill: linear-gradient(180deg, var(--accent), var(--accent-dark));
+  --primary-hover-border: var(--accent-dark);
+  --body-glow: color-mix(in srgb, var(--light-hue) 14%, transparent);
+  --edge-light: #ffffffe0;
+  --edge-highlight: #ffffffb3;
+  --edge-hover: white;
+  --control-shadow: var(--light-text);
+  --shadow-soft: color-mix(in srgb, var(--light-text) 12%, transparent);
+  --shadow-medium: color-mix(in srgb, var(--light-text) 22%, transparent);
+  --shadow-light: color-mix(in srgb, var(--light-text) 12%, transparent);
+  --panel-shadow: color-mix(in srgb, var(--light-text) 9%, transparent);
+  --pressed-shadow: color-mix(in srgb, var(--accent-dark) 30%, transparent);
+  --pressed-highlight: #ffffff33;
+  --link: var(--accent);
+  --link-hover: var(--light-text);
+  --placeholder: var(--muted);
+  --readout-text: var(--text);
+  --badge-fill: var(--inset);
+  --subtle-border: var(--control-border);
+  --icon-text: var(--accent);
+  --icon-border: color-mix(in srgb, var(--accent) 20%, transparent);
+  --icon-fill: color-mix(in srgb, var(--accent) 5%, transparent);
+  --mark-border: var(--control-border);
+  --info-text: var(--muted);
+  --info-hover-fill: color-mix(in srgb, var(--accent) 8%, transparent);
+  --info-hover-border: var(--accent);
+  --progress-fill: linear-gradient(180deg, var(--accent-light), var(--accent-dark));
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334404a' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+:root[data-color-mode="light"][data-theme="ocean"],
+:root[data-color-mode="light"] [data-theme="ocean"] {
+  --light-hue: #6b97b0;
+  --light-text: #1c2c38;
+  --light-muted: #3d5364;
+  --light-accent: #255c7d;
+  --light-accent-top: #326786;
+  --light-accent-bottom: #194762;
+}
+
+:root[data-color-mode="light"][data-theme="amethyst"],
+:root[data-color-mode="light"] [data-theme="amethyst"] {
+  --light-hue: #9a84b4;
+  --light-text: #302638;
+  --light-muted: #554663;
+  --light-accent: #654789;
+  --light-accent-top: #70528f;
+  --light-accent-bottom: #50336f;
+}
+
+:root[data-color-mode="light"][data-theme="ember"],
+:root[data-color-mode="light"] [data-theme="ember"] {
+  --light-hue: #b38a66;
+  --light-text: #382b22;
+  --light-muted: #604a38;
+  --light-accent: #82491f;
+  --light-accent-top: #8b522b;
+  --light-accent-bottom: #693815;
+}
+
+:root[data-color-mode="light"][data-theme="rose"],
+:root[data-color-mode="light"] [data-theme="rose"] {
+  --light-hue: #b67d96;
+  --light-text: #392730;
+  --light-muted: #654655;
+  --light-accent: #8b365b;
+  --light-accent-top: #934565;
+  --light-accent-bottom: #702747;
+}
+
+:root[data-color-mode="light"][data-theme="graphite"],
+:root[data-color-mode="light"] [data-theme="graphite"] {
+  --light-hue: #8794a5;
+  --light-text: #29313b;
+  --light-muted: #485565;
+  --light-accent: #4c5b6e;
+  --light-accent-top: #586679;
+  --light-accent-bottom: #39475a;
 }

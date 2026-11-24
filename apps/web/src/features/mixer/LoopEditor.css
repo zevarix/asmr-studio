@@ -85,7 +85,7 @@
 .loop-editor-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .loop-editor-actions button { flex: 1 1 auto; }
 .loop-details .loop-waveform-help { font-size: .76rem; }
-.loop-details .loop-editor-error { color: #ffce9d; }
+.loop-details .loop-editor-error { color: var(--warning); }
 @media (forced-colors: active) {
   .loop-waveform { background: Canvas; border-color: CanvasText; box-shadow: none; }
   .loop-waveform-selection { fill: Highlight; fill-opacity: .2; }

@@ -14,7 +14,7 @@
 .movement-cycle { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .45rem .75rem; font-size: .83rem; }
 .movement-cycle-input { display: flex; align-items: center; gap: .5rem; max-width: 100%; color: var(--muted); font-size: .75rem; }
 .movement-cycle-input input { width: 6.5rem; min-width: 0; font-size: .85rem; font-variant-numeric: tabular-nums; }
-.movement-cycle-input input[aria-invalid="true"] { border-color: #e6c580; }
+.movement-cycle-input input[aria-invalid="true"] { border-color: var(--validation); }
 .movement-hint, .movement-travel { color: var(--muted); font-size: .73rem; line-height: 1.5; margin: .45rem 0 0; }
 .movement-travel { margin-top: .8rem; padding-top: .65rem; border-top: 1px solid var(--border); }
 @media (max-width: 700px) {
