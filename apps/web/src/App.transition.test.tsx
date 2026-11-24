@@ -40,6 +40,7 @@ function fakePlayer(){
 beforeEach(()=>{
   localStorage.clear();window.history.replaceState(null,'','/?scene=arrangement');
   vi.spyOn(studioApi,'listAssets').mockResolvedValue(assets);
+  vi.spyOn(studioApi,'listStarterSounds').mockResolvedValue([]);
   vi.spyOn(studioApi,'listScenes').mockResolvedValue([
     {id:'arrangement',title:'Rain transition',kind:'transition',revision:1,durationSeconds:null,layerCount:2},
     {id:captureA.scene.id,title:captureA.scene.title,kind:'mix',revision:1,durationSeconds:null,layerCount:2},

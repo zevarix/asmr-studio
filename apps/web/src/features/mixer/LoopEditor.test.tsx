@@ -7,6 +7,29 @@ const layer = fixtureLayer({loop:{startSeconds:0,endSeconds:1,crossfadeSeconds:.
 const decoded = {status:'ready',sampleRate:10,frameCount:20} as const;
 
 describe('visual loop editor',()=>{
+  it('keeps an existing custom loop and uses the prepared default only when looping is switched back on',()=>{
+    const onCommand=vi.fn();
+    const preferredLoop={startSeconds:0,endSeconds:2,crossfadeSeconds:0};
+    const {rerender}=render(<LayerControls layer={layer} durationSeconds={2} preferredLoop={preferredLoop}
+      loopEditorOpen onCommand={onCommand}/>);
+    expect(screen.getByRole('spinbutton',{name:'Loop end'})).toHaveValue(1);
+    expect(onCommand).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('checkbox',{name:'Loop'}));
+    expect(onCommand).toHaveBeenLastCalledWith({type:'setLayerLoop',layerId:layer.id,loop:null});
+    rerender(<LayerControls layer={{...layer,loop:null}} durationSeconds={2} preferredLoop={preferredLoop} onCommand={onCommand}/>);
+    fireEvent.click(screen.getByRole('checkbox',{name:'Loop'}));
+    expect(onCommand).toHaveBeenLastCalledWith({type:'setLayerLoop',layerId:layer.id,loop:preferredLoop});
+  });
+
+  it('uses the ordinary loop when a catalog default is longer than the recording',()=>{
+    const onCommand=vi.fn();
+    render(<LayerControls layer={{...layer,loop:null}} durationSeconds={2}
+      preferredLoop={{startSeconds:0,endSeconds:20,crossfadeSeconds:.02}} onCommand={onCommand}/>);
+    fireEvent.click(screen.getByRole('checkbox',{name:'Loop'}));
+    expect(onCommand).toHaveBeenLastCalledWith({type:'setLayerLoop',layerId:layer.id,
+      loop:{startSeconds:0,endSeconds:1.975,crossfadeSeconds:.02}});
+  });
+
   it('previews the exact draft and sends a scene command only when applied',()=>{
     const onCommand = vi.fn();
     const onPlay = vi.fn();

@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
-import {applyCommand,createEmptyScene,createEmptyTransition,parseScene,sceneAssetIds,sceneLayerCount,type AssetImportMetadata,type AssetRecord,type Layer,type Scene,type SceneCommand} from '@asmr-studio/contracts';
-import {studioApi,StudioApiError,type SceneSummary} from '../../api.js';
+import {applyCommand,createEmptyScene,createEmptyTransition,parseScene,sceneAssetIds,sceneLayerCount,type AssetImportMetadata,type AssetRecord,type Layer,type Loop,type Scene,type SceneCommand} from '@asmr-studio/contracts';
+import {studioApi,StudioApiError,type SceneSummary,type StarterLoopDefault} from '../../api.js';
 import {defaultLoop} from './sound-utils.js';
 
 export type SessionStatus='loading'|'ready'|'unsaved'|'saving'|'saved'|'conflict'|'error';
@@ -31,6 +31,22 @@ export function useSession(){
   const pendingWrite=useRef(false);
   const loadGeneration=useRef(0);
   const starterRequest=useRef<Promise<void>|null>(null);
+  const catalogGeneration=useRef(0);
+  const [preferredLoops,setPreferredLoops]=useState<ReadonlyMap<string,Loop>>(()=>new Map());
+  const preferredLoopsRef=useRef(preferredLoops);
+  const loadStarterLoops=async()=>{
+    const generation=++catalogGeneration.current;
+    let catalog:StarterLoopDefault[]|null;
+    try {catalog=await studioApi.listStarterSounds();}
+    catch {catalog=null;} // Optional defaults must not block the listener's own library.
+    return {generation,catalog};
+  };
+  const acceptStarterLoops=({generation,catalog}:Awaited<ReturnType<typeof loadStarterLoops>>)=>{
+    if(catalog===null||generation!==catalogGeneration.current)return;
+    const loops=new Map<string,Loop>();
+    for(const sound of catalog)if(sound.assetId!==null&&sound.preferredLoop)loops.set(sound.assetId,sound.preferredLoop);
+    preferredLoopsRef.current=loops;setPreferredLoops(loops);
+  };
   const [assets,setAssets]=useState<AssetRecord[]>([]);
   const [savedScenes,setSavedScenes]=useState<SceneSummary[]>([]);
   const [saved,setSaved]=useState<Scene|null>(null);
@@ -51,9 +67,9 @@ export function useSession(){
           try {return await studioApi.getScene(sceneRef.current.id);}
           catch(error){if(error instanceof StudioApiError&&error.status===404)return null;throw error;}
         };
-        const [list,stored,scenes]=await Promise.all([studioApi.listAssets(),loadSelected(),studioApi.listScenes()]);
+        const [list,stored,scenes,catalog]=await Promise.all([studioApi.listAssets(),loadSelected(),studioApi.listScenes(),loadStarterLoops()]);
         if(!active||generation!==loadGeneration.current)return;
-        setAssets(list);setSavedScenes(scenes);
+        setAssets(list);setSavedScenes(scenes);acceptStarterLoops(catalog);
         if(stored){sceneRef.current=stored;setScene(stored);acceptSaved(stored);touchState();showStatus('saved');}
         else showStatus('ready');
         setMessage('');
@@ -93,7 +109,7 @@ export function useSession(){
   const rename=(title:string):Scene=>replaceDraft(parseScene({...sceneRef.current,title:title.trim()}));
   const addAsset=(asset:AssetRecord,role:Layer['role']):Scene=>{
     const layer:Layer={id:'layer-'+crypto.randomUUID(),assetId:asset.id,role,gain:0.5,pan:0,muted:false,solo:false,startSeconds:0,
-      loop:role==='narration'?null:defaultLoop(asset.durationSeconds)};
+      loop:role==='narration'?null:defaultLoop(asset.durationSeconds,preferredLoopsRef.current.get(asset.id))};
     return edit({type:'addLayer',layer});
   };
   const importFile=async(file:File,metadata:AssetImportMetadata):Promise<void>=>{
@@ -102,7 +118,9 @@ export function useSession(){
   };
   const installStarterSounds=():Promise<void>=>{
     if(starterRequest.current)return starterRequest.current;
-    const request=studioApi.installStarterSounds().then(list=>{
+    const request=studioApi.installStarterSounds().then(async list=>{
+      // Make the prepared defaults available before newly installed cards can be selected.
+      acceptStarterLoops(await loadStarterLoops());
       // A local import can finish during the download; retain those new records.
       setAssets(previous=>{
         const merged=new Map(list.map(asset=>[asset.id,asset]));
@@ -147,13 +165,13 @@ export function useSession(){
     const expectedVersion=versionRef.current;
     showStatus('loading');setMessage('');
     try{
-      const [fresh,list,scenes]=await Promise.all([studioApi.getScene(id),studioApi.listAssets(),studioApi.listScenes()]);
+      const [fresh,list,scenes,catalog]=await Promise.all([studioApi.getScene(id),studioApi.listAssets(),studioApi.listScenes(),loadStarterLoops()]);
       if(generation!==loadGeneration.current)return null;
       if(!isCurrent()||versionRef.current!==expectedVersion){
         showStatus(isDirty()?'unsaved':savedRef.current?'saved':'ready');
         setMessage('Opening was canceled because this request is no longer current. Your draft is still here.');return null;
       }
-      sceneRef.current=fresh;setScene(fresh);acceptSaved(fresh);setAssets(list);setSavedScenes(scenes);touchState();
+      sceneRef.current=fresh;setScene(fresh);acceptSaved(fresh);setAssets(list);setSavedScenes(scenes);acceptStarterLoops(catalog);touchState();
       showStatus('saved');setMessage('');setConflict(null);remember(fresh.id);
       return fresh;
     }catch{
@@ -197,7 +215,7 @@ export function useSession(){
   const dirty=saved===null
     ? JSON.stringify(scene)!==JSON.stringify(scene.transition?createEmptyTransition(scene.id,'Untitled transition'):createEmptyScene(scene.id,'Untitled session'))
     : JSON.stringify(scene)!==JSON.stringify(saved);
-  return {scene,assets,savedScenes,status,message,conflict,dirty,missingAssets,edit,rename,addAsset,importFile,
+  return {scene,assets,preferredLoops,savedScenes,status,message,conflict,dirty,missingAssets,edit,rename,addAsset,importFile,
     installStarterSounds,save,reload,saveAsNew,newScene,newTransition,openScene,getScene:()=>sceneRef.current,
     stateVersion,touchState,getStateVersion:()=>versionRef.current,restoreDraft,
     getSnapshot:()=>({scene:sceneRef.current,stateVersion:versionRef.current,savedRevision:savedRef.current?.revision??null,dirty:isDirty(),status:statusRef.current})};

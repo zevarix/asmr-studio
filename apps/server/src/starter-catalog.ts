@@ -1,4 +1,6 @@
-/** Fixed, attributed source recordings. Audio stays in private application storage. */
+import type { Loop } from '@asmr-studio/contracts';
+
+/** Fixed, attributed sounds. Audio stays in private application storage. */
 export interface StarterSound {
   id:string;
   title:string;
@@ -14,22 +16,32 @@ export interface StarterSound {
   creator:string;
   creatorUrl:string;
   sourceUrl:string;
-  license:'CC0-1.0'|'CC-BY-4.0'|'Public Domain';
+  license:'CC0-1.0'|'CC-BY-4.0'|'Public Domain'|'Earshot output permission';
   licenseUrl:string;
   licenseEvidenceUrl:string;
   upstreamLicenseEvidenceUrl?:string;
   upstreamProject?:string;
   upstreamRevision?:string;
   upstreamEditor?:string|null;
-  recordingKind:'real-recording';
+  recordingKind:'real-recording'|'procedural-synthesis'|'recording-reconstruction';
   sourceForm:string;
   attribution:string;
   archiveMember?:string;
   archiveBytes?:number;
   archiveSha256?:string;
   gainDb?:number;
+  /** Already prepared PCM16 WAVs are installed without changing any bytes. */
+  preparation?:'preserve-wav';
+  preparationNotes?:string;
+  /** Applied only when adding a layer or explicitly enabling looping. */
+  preferredLoop?:Loop;
   excerpt:{startSeconds:number;durationSeconds:number};
 }
+
+const earshotRevision='7a7f7c5c70d4a763a1eca4b3666af7c77e313f97';
+const earshotReadme=`https://github.com/Leonxlnx/earshot/blob/${earshotRevision}/README.md`;
+const earshotCredits=`https://github.com/Leonxlnx/earshot/blob/${earshotRevision}/earshot/data/textures/CREDITS.md`;
+const earshotParameters='Generated with seed 0, duration 20 seconds, loop=true, 44.1 kHz / 16-bit output, lufs=-28 (momentary maximum), energy=-0.5, bright=-0.3, space=-0.5.';
 
 export const starterCatalog:readonly StarterSound[] = [
   {
@@ -480,5 +492,60 @@ export const starterCatalog:readonly StarterSound[] = [
       "startSeconds": 0,
       "durationSeconds": 20
     }
+  },
+  {
+    id:'window-rain',title:'Window rain',category:'ambience',
+    description:'Soft rain on a window, procedurally synthesized with Earshot and prepared for continuous looping.',
+    filename:'window-rain.wav',
+    downloadUrl:'https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/window-rain.wav',
+    bytes:3528044,sha256:'ae9f3dc1fac28f3f41087c41d50506da97d8a1934c89203e2ca684f1f7816035',
+    durationSeconds:20,sampleRate:44100,channels:2,
+    creator:'Earshot contributors',creatorUrl:'https://github.com/Leonxlnx/earshot',
+    sourceUrl:earshotReadme,license:'Earshot output permission',licenseUrl:earshotReadme,
+    licenseEvidenceUrl:earshotReadme,upstreamProject:'Earshot',upstreamRevision:earshotRevision,
+    recordingKind:'procedural-synthesis',sourceForm:'Earshot rain/window procedural synthesis; prepared PCM16 WAV',
+    attribution:`Window rain generated with Earshot rain/window (${earshotReadme}). Earshot code is MIT; its output permission allows any use, including commercial use, without attribution. No source recording is used for this procedural design.`,
+    preparation:'preserve-wav',
+    preparationNotes:`${earshotParameters} A fixed -7.5609548569773475 dB attenuation is already included. No baked loop crossfade or boundary fade.`,
+    preferredLoop:{startSeconds:0,endSeconds:20,crossfadeSeconds:0},
+    excerpt:{startSeconds:0,durationSeconds:20},
+  },
+  {
+    id:'rain-on-wood',title:'Rain on wood',category:'ambience',
+    description:'Rain reconstructed with Earshot from a CC0 wood-deck recording, with a short loop join.',
+    filename:'rain-on-wood.wav',
+    downloadUrl:'https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/rain-on-wood.wav',
+    bytes:3528044,sha256:'5049b51ea3b1b97a2630db181628686ce99a807b7deea1f480b482850ce99227',
+    durationSeconds:20,sampleRate:44100,channels:2,
+    creator:'Earshot contributors; source recording by cocaine',creatorUrl:'https://freesound.org/people/cocaine/',
+    sourceUrl:'https://freesound.org/people/cocaine/sounds/611421/',
+    license:'Earshot output permission',licenseUrl:earshotReadme,licenseEvidenceUrl:earshotReadme,
+    upstreamLicenseEvidenceUrl:earshotCredits,
+    upstreamProject:'Earshot',upstreamRevision:earshotRevision,
+    recordingKind:'recording-reconstruction',sourceForm:'Earshot rain/wood recording-derived reconstruction; prepared PCM16 WAV',
+    attribution:`Rain on wood generated with Earshot rain/wood (${earshotReadme}), using a model derived from “Rain On Wood Deck (Extreme Quality)” by cocaine (https://freesound.org/people/cocaine/sounds/611421/), CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/). Earshot code is MIT; its output permission allows any use, including commercial use, without attribution.`,
+    preparation:'preserve-wav',
+    preparationNotes:`${earshotParameters} A fixed -6.0857056079240905 dB attenuation is already included. No baked loop crossfade or boundary fade.`,
+    preferredLoop:{startSeconds:0,endSeconds:20,crossfadeSeconds:0.02},
+    excerpt:{startSeconds:0,durationSeconds:20},
+  },
+  {
+    id:'small-brook',title:'Small brook',category:'ambience',
+    description:'A gently flowing brook reconstructed with Earshot from a CC0 stream recording, with a short loop join.',
+    filename:'small-brook.wav',
+    downloadUrl:'https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/small-brook.wav',
+    bytes:3528044,sha256:'69a50dc8dc98dc03904781730e66f0e4f127a852ea38eeb34074b9449a7523b8',
+    durationSeconds:20,sampleRate:44100,channels:2,
+    creator:'Earshot contributors; source recording by Joseph Sardin (BigSoundBank.com)',creatorUrl:'https://bigsoundbank.com/',
+    sourceUrl:'https://bigsoundbank.com/small-stream-s0823.html',
+    license:'Earshot output permission',licenseUrl:earshotReadme,licenseEvidenceUrl:earshotReadme,
+    upstreamLicenseEvidenceUrl:earshotCredits,
+    upstreamProject:'Earshot',upstreamRevision:earshotRevision,
+    recordingKind:'recording-reconstruction',sourceForm:'Earshot stream/brook recording-derived reconstruction; prepared PCM16 WAV',
+    attribution:`Small brook generated with Earshot stream/brook (${earshotReadme}), using a model derived from “Small Stream” by Joseph Sardin, BigSoundBank.com (https://bigsoundbank.com/small-stream-s0823.html), CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/). Earshot code is MIT; its output permission allows any use, including commercial use, without attribution.`,
+    preparation:'preserve-wav',
+    preparationNotes:`${earshotParameters} No additional attenuation was applied after generation. No baked loop crossfade or boundary fade.`,
+    preferredLoop:{startSeconds:0,endSeconds:20,crossfadeSeconds:0.02},
+    excerpt:{startSeconds:0,durationSeconds:20},
   }
 ];

@@ -1,6 +1,7 @@
 # Starter sound library
 
-The starter library contains 16 real recordings for layering and looping.
+The starter library contains 19 sounds for layering and looping: 16 real
+recordings and three prepared Earshot water ambiences.
 Whisper generation remains separate from this collection.
 
 ## Browse and inspect sounds
@@ -42,11 +43,13 @@ changes in an immutable snapshot. Older installations may also contain
 Prepared playback files enter the normal `media/blobs/` store. Audio and private
 app data stay outside Git.
 
-Each catalog entry selects an excerpt starting at zero, with the durations
-shown below. Playback copies are converted to **44.1 kHz, 16-bit PCM WAV**,
-preserving the source's mono or stereo channels. These selections keep decoded
+The 16 recorded entries select excerpts starting at zero, with the durations
+shown below. Their playback copies are converted to **44.1 kHz, 16-bit PCM WAV**,
+preserving the source's mono or stereo channels. The three Earshot entries arrive
+as prepared WAVs in the same format and enter the media store byte for byte,
+without another conversion or gain adjustment. These short files keep decoded
 audio memory manageable. Longer recordings imported by the user remain
-supported; the starter excerpts do not set an import-duration limit. The audio
+supported; the starter durations do not set an import-duration limit. The audio
 engine applies the adjustable loop crossfade during playback.
 
 For the eight Freesound preview entries, the retained source is the downloaded
@@ -54,17 +57,19 @@ For the eight Freesound preview entries, the retained source is the downloaded
 previews to WAV does not restore information lost in MP3 encoding.
 
 Two quiet recordings receive a fixed gain in their playback copies: **+10 dB for
-makeup brushing** and **+42 dB for slow hand rubbing**. All other entries retain
-their source level. These are constant gain changes, with no compression or
+makeup brushing** and **+42 dB for slow hand rubbing**. The other recorded entries
+retain their source level. These are constant gain changes, with no compression or
 loudness normalization; the unchanged downloads remain in `starters/originals/`.
 The gain is included in each affected asset's attribution and catalog snapshot.
+The separate preparation of the Earshot rain sounds is described below.
 
 ## Recording credits and licenses
 
-Rights apply to each recording individually. The following source, creator,
-license, and editor credits are the attribution for the corresponding sound.
-ASMR Studio's changes are the excerpt selection, conversion, and the two fixed
-gain adjustments described above.
+Rights apply to each sound individually. The following source, creator,
+permission, and editor credits are the attribution for the corresponding sound.
+For the recorded entries, ASMR Studio's changes are the excerpt selection,
+conversion, and the two fixed gain adjustments described above. The Earshot
+entries retain their generator and source-model credits separately.
 
 ### Ambience from Blanket
 
@@ -109,11 +114,44 @@ The keyboard selection is a human typing recording made with a Cherry KC 1000
 and Shure SM7B, postprocessed by its creator with Izotope Neutron 2. The pack's
 generated typing sequences are separate assets and are not used here.
 
+### Prepared water ambience from Earshot
+
+These 20-second stereo WAVs were rendered with [Earshot][earshot] at revision
+`7a7f7c5c70d4a763a1eca4b3666af7c77e313f97`. Window rain is procedural synthesis;
+Rain on wood and Small brook are new renders of models derived from credited
+CC0 recordings. Earshot's [output permission][earshot-permission] allows rendered
+sounds to be used freely, including commercially. Its MIT code license is
+separate from that output permission and the original recordings' CC0 terms.
+
+| Sound | Design and source | Preparation after rendering | Default loop |
+| --- | --- | --- | --- |
+| Window rain | `rain/window`; procedural synthesis by Earshot contributors | Fixed attenuation of about 7.561 dB | 0–20s, no crossfade |
+| Rain on wood | `rain/wood`; model derived from **cocaine**, [Rain On Wood Deck (Extreme Quality)](https://freesound.org/people/cocaine/sounds/611421/), [CC0 1.0][cc0] | Fixed attenuation of about 6.086 dB | 0–20s, 0.02s crossfade |
+| Small brook | `stream/brook`; model derived from **Joseph Sardin (BigSoundBank.com)**, [Small Stream](https://bigsoundbank.com/small-stream-s0823.html), [CC0 1.0][cc0] | Original render bytes retained | 0–20s, 0.02s crossfade |
+
+The files contain the complete renders without baked boundary fades or
+crossfades. The fixed rain attenuation is already in the downloaded WAVs. No
+additional compression, normalization, or gain adjustment happens during their
+installation. Audio is distributed as versioned release assets outside Git;
+the installer verifies each file's exact size and SHA-256 before importing it.
+Neither Python nor Earshot is needed to install or play these sounds.
+
+Adding one of these sounds to a mix, or turning its loop back on, uses the
+catalog's prepared loop settings. You can still edit and save the loop normally;
+loading a session preserves its saved settings. Updating the starter library
+recognizes an already imported, permitted copy with the same verified audio
+identity and preserves its asset ID and existing session references.
+
+See [the water sound preparation record](earshot-water-sounds.md) and
+[machine-readable provenance](earshot-water-sounds.json) for generation settings,
+exact gain changes, checksums, release URLs, and source evidence.
+
 ## Finding additional sounds
 
 Free access and permission to redistribute reusable recordings are separate
 questions. The starter catalog uses individually verified CC0, CC BY, or public
-domain recordings and retains creator, source, license, and processing details.
+domain recordings, plus Earshot renders covered by its output permission. It
+retains creator, source, permission, and processing details.
 Personal imports can use other sources according to the user's own permissions.
 
 The following distinctions were checked against the publishers' terms on
@@ -138,11 +176,15 @@ reference. That reference does not imply that its code was copied or that its
 third-party audio shares the MIT license.
 
 Source hashes, audio decoding, and format checks establish technical integrity.
-Listening acceptance is still pending: the recordings, selected excerpts,
-relative levels, and loop transitions need to be judged by ear in the app.
+Desktop listening acceptance is complete for the three prepared water sounds,
+including their selected levels and continuous loops. Phone background and
+screen-off behavior remain separate device-validation work; this sound pack
+does not establish those capabilities.
 
 [blanket]: https://github.com/rafaelmardojai/blanket
 [blanket-licenses]: https://github.com/rafaelmardojai/blanket/blob/2eaca9ba5a1b624adf90b6ccee1008efc46f0273/SOUNDS_LICENSING.md
 [moodist]: https://github.com/remvze/moodist
 [cc0]: https://creativecommons.org/publicdomain/zero/1.0/
 [by]: https://creativecommons.org/licenses/by/4.0/
+[earshot]: https://github.com/Leonxlnx/earshot
+[earshot-permission]: https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/README.md#licence

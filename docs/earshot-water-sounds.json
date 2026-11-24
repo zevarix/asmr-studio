@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "pack": "sounds-earshot-water-v1",
+  "title": "Earshot water sounds v1",
+  "releaseUrl": "https://github.com/zevarix/asmr-studio/releases/tag/sounds-earshot-water-v1",
+  "generator": {
+    "name": "Earshot",
+    "repository": "https://github.com/Leonxlnx/earshot",
+    "revision": "7a7f7c5c70d4a763a1eca4b3666af7c77e313f97",
+    "codeLicense": "MIT",
+    "codeLicenseUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/LICENSE",
+    "outputPermission": {
+      "name": "Earshot output permission",
+      "summary": "Rendered output may be used freely, including commercially, without requiring attribution. This permission is separate from Earshot's code license.",
+      "evidenceUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/README.md#licence"
+    },
+    "function": "earshot.make.make",
+    "commonArguments": {
+      "want": "seamless loop",
+      "seed": 0,
+      "dur": 20,
+      "loop": true,
+      "listen": false,
+      "sr": 44100,
+      "bits": 16,
+      "lufs": -28,
+      "energy": -0.5,
+      "bright": -0.3,
+      "space": -0.5
+    },
+    "loudnessTargetMeaning": "Earshot momentary-maximum target, not an integrated LUFS measurement",
+    "optionalListeningModelsUsed": false
+  },
+  "format": {
+    "container": "WAV",
+    "encoding": "PCM_16",
+    "sampleRate": 44100,
+    "channels": 2,
+    "durationSeconds": 20,
+    "frames": 882000,
+    "bytesPerFile": 3528044
+  },
+  "postRenderPreparation": {
+    "summary": "Full-length renders with constant rain attenuation; no additional normalization, compression, boundary fades, or crossfades baked into the files.",
+    "installation": "Preserve the prepared WAV bytes after exact byte-count and SHA-256 verification. Do not re-encode or apply attenuation again.",
+    "loopSettings": "Defaults belong to the starter catalog and new layers; saved session settings remain editable and unchanged by catalog updates.",
+    "reproducibility": "The final SHA-256 values identify the distributed artifacts. Generation parameters alone do not guarantee identical output across dependency versions or hosts."
+  },
+  "sounds": [
+    {
+      "id": "window-rain",
+      "title": "Window rain",
+      "filename": "window-rain.wav",
+      "downloadUrl": "https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/window-rain.wav",
+      "sha256": "ae9f3dc1fac28f3f41087c41d50506da97d8a1934c89203e2ca684f1f7816035",
+      "originalRenderSha256": "93b823762348df3246ae4fc02e6d6f54c839514722b2d6d88c5800f96ac2c214",
+      "design": "rain/window",
+      "recordingKind": "procedural-synthesis",
+      "source": {
+        "creator": "Earshot contributors",
+        "sourceRecording": null,
+        "evidenceUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/README.md#what-it-can-make"
+      },
+      "postRenderGainDb": -7.5609548569773475,
+      "preferredLoop": {
+        "startSeconds": 0,
+        "endSeconds": 20,
+        "crossfadeSeconds": 0
+      }
+    },
+    {
+      "id": "rain-on-wood",
+      "title": "Rain on wood",
+      "filename": "rain-on-wood.wav",
+      "downloadUrl": "https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/rain-on-wood.wav",
+      "sha256": "5049b51ea3b1b97a2630db181628686ce99a807b7deea1f480b482850ce99227",
+      "originalRenderSha256": "2604bd86f43e01b1b0fde6934ba60f304bb9e85fbf00af8be906083464d438b4",
+      "design": "rain/wood",
+      "recordingKind": "recording-reconstruction",
+      "source": {
+        "model": "deck",
+        "title": "Rain On Wood Deck (Extreme Quality)",
+        "creator": "cocaine",
+        "sourceUrl": "https://freesound.org/people/cocaine/sounds/611421/",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creditsEvidenceUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/earshot/data/textures/CREDITS.md",
+        "modelIndexEvidenceUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/earshot/data/textures/index.json"
+      },
+      "postRenderGainDb": -6.0857056079240905,
+      "preferredLoop": {
+        "startSeconds": 0,
+        "endSeconds": 20,
+        "crossfadeSeconds": 0.02
+      }
+    },
+    {
+      "id": "small-brook",
+      "title": "Small brook",
+      "filename": "small-brook.wav",
+      "downloadUrl": "https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/small-brook.wav",
+      "sha256": "69a50dc8dc98dc03904781730e66f0e4f127a852ea38eeb34074b9449a7523b8",
+      "originalRenderSha256": "69a50dc8dc98dc03904781730e66f0e4f127a852ea38eeb34074b9449a7523b8",
+      "design": "stream/brook",
+      "recordingKind": "recording-reconstruction",
+      "source": {
+        "model": "brook",
+        "title": "Small Stream",
+        "creator": "Joseph Sardin (BigSoundBank.com)",
+        "sourceUrl": "https://bigsoundbank.com/small-stream-s0823.html",
+        "license": "CC0-1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "creditsEvidenceUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/earshot/data/textures/CREDITS.md",
+        "modelIndexEvidenceUrl": "https://github.com/Leonxlnx/earshot/blob/7a7f7c5c70d4a763a1eca4b3666af7c77e313f97/earshot/data/textures/index.json",
+        "upstreamMetadataNote": "CREDITS.md names source seconds 23 to 35; index.json records excerpt_s [18, 12]. This pack records the discrepancy without asserting the original model-training excerpt."
+      },
+      "postRenderGainDb": 0,
+      "preferredLoop": {
+        "startSeconds": 0,
+        "endSeconds": 20,
+        "crossfadeSeconds": 0.02
+      }
+    }
+  ]
+}

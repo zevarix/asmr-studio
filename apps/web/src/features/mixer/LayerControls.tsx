@@ -5,7 +5,7 @@ import IconHeadphones from '@tabler/icons-react/icons/IconHeadphones';
 import IconRepeat from '@tabler/icons-react/icons/IconRepeat';
 import IconVolumeOff from '@tabler/icons-react/icons/IconVolumeOff';
 import IconX from '@tabler/icons-react/icons/IconX';
-import type {AssetRecord,Layer,SceneCommand} from '@asmr-studio/contracts';
+import type {AssetRecord,Layer,Loop,SceneCommand} from '@asmr-studio/contracts';
 import {defaultLoop,roleNames} from './sound-utils.js';
 import {RangeInput} from './RangeInput.js';
 import {SoundIcon} from './SoundIcon.js';
@@ -19,6 +19,7 @@ interface Props {
   assets?:AssetRecord[];
   label?:string;
   durationSeconds?:number|undefined;
+  preferredLoop?:Loop|undefined;
   onCommand:(command:SceneCommand)=>void;
   loopEditorOpen?:boolean|undefined;
   onLoopEditorOpenChange?:((open:boolean)=>void)|undefined;
@@ -26,7 +27,7 @@ interface Props {
   loopPreview?:LoopPreviewControls|undefined;
 }
 
-function LoopControls({layer,durationSeconds,onCommand,loopEditorOpen,onLoopEditorOpenChange,waveform,loopPreview}:Omit<Props,'label'>) {
+function LoopControls({layer,durationSeconds,preferredLoop,onCommand,loopEditorOpen,onLoopEditorOpenChange,waveform,loopPreview}:Omit<Props,'label'>) {
   const [localOpen,setLocalOpen] = useState(false);
   const open = loopEditorOpen ?? localOpen;
   const setOpen = (next:boolean) => {
@@ -39,7 +40,7 @@ function LoopControls({layer,durationSeconds,onCommand,loopEditorOpen,onLoopEdit
       onChange={event=>{
         if (event.currentTarget.matches(':disabled')) return;
         if (!event.currentTarget.checked && open) setOpen(false);
-        onCommand({type:'setLayerLoop',layerId:layer.id,loop:event.target.checked?defaultLoop(durationSeconds!):null});
+        onCommand({type:'setLayerLoop',layerId:layer.id,loop:event.target.checked?defaultLoop(durationSeconds!,preferredLoop):null});
       }}/>Loop continuously</label><span>{layer.loop?'Looping':'Play once'}</span></div>
     {layer.loop&&<details className="loop-details" open={open}>
       <summary onClick={event=>{event.preventDefault();setOpen(!open);}}>
@@ -52,7 +53,7 @@ function LoopControls({layer,durationSeconds,onCommand,loopEditorOpen,onLoopEdit
   </div>;
 }
 
-export function LayerControls({layer,assets=[],label,durationSeconds,onCommand,loopEditorOpen,onLoopEditorOpenChange,waveform,loopPreview}:Props) {
+export function LayerControls({layer,assets=[],label,durationSeconds,preferredLoop,onCommand,loopEditorOpen,onLoopEditorOpenChange,waveform,loopPreview}:Props) {
   const equalizer=layer.equalizer;
   const toneState=equalizer?.bypassed?'Bypassed':equalizer&&(equalizer.bassDb!==0||equalizer.midDb!==0||equalizer.trebleDb!==0)?'Adjusted':'Flat';
   const panPercent=Math.round(layer.pan*100);
@@ -89,7 +90,7 @@ export function LayerControls({layer,assets=[],label,durationSeconds,onCommand,l
     </details>
     <OccasionalControls layer={layer} assets={assets} label={(label??layer.id)+' occasional playback'}
       onChange={occasional=>onCommand({type:'setLayerOccasional',layerId:layer.id,occasional})}/>
-    {!layer.occasional?.enabled&&<LoopControls layer={layer} durationSeconds={durationSeconds} onCommand={onCommand} loopEditorOpen={loopEditorOpen}
+    {!layer.occasional?.enabled&&<LoopControls layer={layer} durationSeconds={durationSeconds} preferredLoop={preferredLoop} onCommand={onCommand} loopEditorOpen={loopEditorOpen}
       onLoopEditorOpenChange={onLoopEditorOpenChange} waveform={waveform} loopPreview={loopPreview}/>}
   </fieldset>;
 }

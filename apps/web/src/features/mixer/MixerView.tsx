@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react';
-import type {Scene,SceneCommand,AssetRecord,Layer} from '@asmr-studio/contracts';
+import type {Scene,SceneCommand,AssetRecord,Layer,Loop} from '@asmr-studio/contracts';
 import type {PlaybackSnapshot} from '@asmr-studio/audio-engine';
 import {LayerControls} from './LayerControls.js';
 import {Transport} from './Transport.js';
@@ -23,6 +23,7 @@ export interface MixerViewProps {
   onPause:()=>void;
   onStop:()=>void;
   assets?:AssetRecord[];
+  preferredLoops?:ReadonlyMap<string,Loop>|undefined;
   libraryTools?:ReactNode;
   sessionTools?:ReactNode;
   exportTools?:ReactNode;
@@ -35,7 +36,7 @@ export interface MixerViewProps {
   loopAudioService?:LoopAudioService|undefined;
 }
 
-export function MixerView({scene,playback,onCommand,onStart,onPause,onStop,assets=[],libraryTools,sessionTools,exportTools,
+export function MixerView({scene,playback,onCommand,onStart,onPause,onStop,assets=[],preferredLoops,libraryTools,sessionTools,exportTools,
   onAddAsset,onRename,onInstallStarterSounds,previewStopToken=0,canStart=true,outputMeterSource=null,loopAudioService}:MixerViewProps){
   const byId=new Map(assets.map(asset=>[asset.id,asset]));
   const [openLoop,setOpenLoop]=useState<{sceneId:string;layerId:string}|null>(null);
@@ -74,6 +75,7 @@ export function MixerView({scene,playback,onCommand,onStart,onPause,onStop,asset
           ? <p className="empty-copy">Your mix is empty. Choose a sound from your library to begin.</p>
           : <div className="layers">{scene.layers.map(layer=><LayerControls key={JSON.stringify([scene.id,layer.id])} layer={layer} assets={assets}
             label={byId.get(layer.assetId)?.displayName??layer.id} durationSeconds={byId.get(layer.assetId)?.durationSeconds} onCommand={onCommand}
+            preferredLoop={preferredLoops?.get(layer.assetId)}
             loopEditorOpen={selectedLayer?.id===layer.id} onLoopEditorOpenChange={open=>setOpenLoop(current=>open?{sceneId:scene.id,layerId:layer.id}:current?.layerId===layer.id?null:current)}
             waveform={selectedLayer?.id===layer.id?loopAudio.waveform:undefined} loopPreview={selectedLayer?.id===layer.id?loopAudio.preview:undefined}/>)}</div>}
         <NarrationPanel layers={scene.layers}/>

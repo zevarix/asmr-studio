@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { AssetImportMetadata, AssetRecord } from '@asmr-studio/contracts';
+import { loopSchema, type AssetImportMetadata, type AssetRecord } from '@asmr-studio/contracts';
 import { AssetStore } from './assets.js';
 import { StudioError } from './errors.js';
 import { starterCatalog, type StarterSound } from './starter-catalog.js';
@@ -23,6 +23,9 @@ export interface StarterLibraryOptions {
 export type StarterCatalogEntry = StarterSound & {assetId:string|null;modifications:string};
 
 function modification(sound:StarterSound):string {
+  if (sound.preparation==='preserve-wav') {
+    return `Prepared loop: ${sound.durationSeconds} seconds; 44.1 kHz, 16-bit PCM WAV with ${sound.channels===1?'mono':'stereo'} channels, installed byte-for-byte. ${sound.preparationNotes ?? ''} No additional gain, resampling, normalization or fades are applied during installation.`;
+  }
   const gain = sound.gainDb ? `Fixed playback gain: ${sound.gainDb>0?'+':''}${sound.gainDb} dB. ` : '';
   return `ASMR Studio excerpt: ${sound.excerpt.startSeconds}–${sound.excerpt.startSeconds+sound.excerpt.durationSeconds} seconds; converted to 44.1 kHz, 16-bit PCM WAV with ${sound.channels===1?'mono':'stereo'} channels preserved. ${gain}No loudness normalization.`;
 }
@@ -44,6 +47,13 @@ function validateCatalog(sounds:readonly StarterSound[]):void {
     if (!Number.isSafeInteger(sound.bytes) || sound.bytes<=0 || !/^[a-f0-9]{64}$/.test(sound.sha256)) throw new Error('Starter sources require exact bytes and SHA-256');
     if (![1,2].includes(sound.channels) || !Number.isFinite(sound.excerpt.startSeconds) || sound.excerpt.startSeconds<0 || !Number.isFinite(sound.excerpt.durationSeconds) || sound.excerpt.durationSeconds<=0 || sound.excerpt.startSeconds+sound.excerpt.durationSeconds>sound.durationSeconds) throw new Error('Invalid starter sound excerpt');
     if (sound.gainDb!==undefined && (!Number.isFinite(sound.gainDb) || sound.gainDb < -60 || sound.gainDb > 60)) throw new Error('Starter playback gain must be finite and between -60 and 60 dB');
+    if (sound.preferredLoop!==undefined && (!loopSchema.safeParse(sound.preferredLoop).success || sound.preferredLoop.endSeconds>sound.excerpt.durationSeconds)) throw new Error('Invalid starter preferred loop');
+    if (sound.preparation!==undefined) {
+      const frames=sound.durationSeconds*44100;
+      if (sound.preparation!=='preserve-wav' || sound.sampleRate!==44100 || !sound.filename.endsWith('.wav') ||
+        sound.gainDb!==undefined || sound.archiveMember!==undefined || sound.excerpt.startSeconds!==0 || sound.excerpt.durationSeconds!==sound.durationSeconds ||
+        !Number.isSafeInteger(frames) || frames<=0 || sound.bytes!==44+frames*sound.channels*2) throw new Error('Prepared starter sounds require a complete 44.1 kHz PCM16 WAV without further processing');
+    }
     if (sound.archiveMember!==undefined) {
       if (!sound.archiveMember || sound.archiveMember.startsWith('-') || /[\\\0*?\[\]]/.test(sound.archiveMember) || sound.archiveMember.split('/').some(part=>part==='' || part==='.' || part==='..') || !Number.isSafeInteger(sound.archiveBytes) || sound.archiveBytes!<=0 || !/^[a-f0-9]{64}$/.test(sound.archiveSha256 ?? '')) throw new Error('Invalid starter archive member');
     } else if (sound.archiveBytes!==undefined || sound.archiveSha256!==undefined) throw new Error('Archive metadata needs an exact member');
@@ -86,6 +96,25 @@ async function prepareRecording(sourcePath:string,destinationPath:string,sound:S
   }
 }
 
+function allowsReleaseRedirect(sound:StarterSound):boolean {
+  // GitHub serves these fixed release assets through its signed asset CDN. No
+  // caller-supplied URL or other catalog source gains redirect permission.
+  return sound.preparation==='preserve-wav' && ['window-rain.wav','rain-on-wood.wav','small-brook.wav'].some(filename=>
+    sound.downloadUrl===`https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/${filename}`);
+}
+async function verifyPreparedWav(file:FileHandle,sound:StarterSound):Promise<void> {
+  // The prepared release has canonical 44-byte PCM headers. Keeping this narrow
+  // also prevents a future catalog edit from silently changing its format.
+  const header=Buffer.alloc(44);
+  const {bytesRead}=await file.read(header,0,header.length,0);
+  const stat=await file.stat();
+  if (bytesRead!==44 || stat.size!==sound.bytes || header.toString('ascii',0,4)!=='RIFF' || header.readUInt32LE(4)!==sound.bytes-8 ||
+    header.toString('ascii',8,16)!=='WAVEfmt ' || header.readUInt32LE(16)!==16 || header.readUInt16LE(20)!==1 ||
+    header.readUInt16LE(22)!==sound.channels || header.readUInt32LE(24)!==44100 || header.readUInt32LE(28)!==44100*sound.channels*2 ||
+    header.readUInt16LE(32)!==sound.channels*2 || header.readUInt16LE(34)!==16 || header.toString('ascii',36,40)!=='data' ||
+    header.readUInt32LE(40)!==sound.bytes-44) throw new StudioError('STARTER_PREPARATION_FAILED','The prepared starter is not the expected complete PCM16 WAV',422);
+}
+
 /** Installs only the repository's fixed catalog. HTTP callers cannot supply URLs or preparation arguments. */
 export class StarterLibrary {
   private readonly base:string;
@@ -115,6 +144,15 @@ export class StarterLibrary {
 
   private installed(sound:StarterSound):AssetRecord|null {
     const expected = metadata(sound);
+    if (sound.preparation==='preserve-wav') {
+      // Reuse a byte-identical licensed import without changing its identity,
+      // user-facing name, provenance, or any saved layers that reference it.
+      return this.options.assets.list().find(asset=>asset.sha256===sound.sha256 && asset.format==='wav' &&
+        asset.sampleRate===sound.sampleRate && asset.channels===sound.channels && asset.durationSeconds===sound.durationSeconds &&
+        asset.provenance.kind==='licensed' && asset.provenance.source!==null &&
+        asset.rights.privateUse==='permitted' && asset.rights.redistribution==='permitted' &&
+        asset.roles.length===1 && asset.roles[0]===expected.roles[0] && this.options.assets.byteLength(asset.id)===sound.bytes) ?? null;
+    }
     return this.options.assets.list().find(asset=>asset.displayName===expected.displayName && asset.provenance.kind==='licensed' && asset.provenance.source===expected.provenance.source && asset.rights.privateUse==='permitted' && asset.rights.redistribution==='permitted' && asset.roles.length===1 && asset.roles[0]===expected.roles[0]) ?? null;
   }
   catalog():StarterCatalogEntry[] {
@@ -141,7 +179,18 @@ export class StarterLibrary {
     const temporary = join(this.temporary,`${randomUUID()}.part`);
     let file:FileHandle|undefined;
     try {
-      const response = await this.fetchSource(sound.downloadUrl,{redirect:'error',signal:AbortSignal.timeout(transferTimeoutMs)});
+      const signal=AbortSignal.timeout(transferTimeoutMs);
+      const redirectAllowed=allowsReleaseRedirect(sound);
+      let response = await this.fetchSource(sound.downloadUrl,{redirect:redirectAllowed?'manual':'error',signal});
+      if (redirectAllowed && [301,302,303,307,308].includes(response.status)) {
+        const location=response.headers.get('location');
+        await response.body?.cancel().catch(()=>{});
+        let target:URL|null=null;
+        try { if(location)target=new URL(location); } catch { /* Rejected below. */ }
+        if (!target || !location?.startsWith('https://release-assets.githubusercontent.com/') || target.origin!=='https://release-assets.githubusercontent.com' ||
+          target.username || target.password || target.hash || target.port) throw new StudioError('STARTER_DOWNLOAD_FAILED','The starter release redirect was not an approved asset host',502);
+        response=await this.fetchSource(target.href,{redirect:'error',signal});
+      }
       if (response.status!==200 || !response.body) {
         await response.body?.cancel().catch(()=>{});
         throw new StudioError('STARTER_DOWNLOAD_FAILED',`Could not download ${sound.title}`,502);
@@ -192,16 +241,18 @@ export class StarterLibrary {
       const existing = this.installed(sound);
       if (existing) {result.push(existing);continue;}
       const source = await this.original(sound);
-      const playback = join(this.temporary,`${randomUUID()}.wav`);
+      const preserved=sound.preparation==='preserve-wav';
+      const playback = preserved?source:join(this.temporary,`${randomUUID()}.wav`);
       let file:FileHandle|undefined;
       try {
-        await this.prepare(source,playback,sound);
+        if (!preserved) await this.prepare(source,playback,sound);
         file = await open(playback,constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
         const stat = await file.stat();
         const maximumBytes = Math.ceil(sound.excerpt.durationSeconds*44100)*sound.channels*2+65536;
         if (!stat.isFile() || stat.size>maximumBytes) throw new StudioError('STARTER_PREPARATION_FAILED','The prepared recording exceeded its expected size',422);
+        if (preserved) await verifyPreparedWav(file,sound);
         result.push(await this.options.assets.ingest(file.createReadStream({autoClose:false}),metadata(sound),'audio/wav'));
-      } finally { await file?.close();await unlink(playback).catch(error=>{if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}); }
+      } finally { await file?.close();if(!preserved)await unlink(playback).catch(error=>{if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}); }
     }
     return result;
   }

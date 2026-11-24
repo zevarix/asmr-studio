@@ -1,4 +1,4 @@
-import type {Layer} from '@asmr-studio/contracts';
+import {loopSchema,type Layer,type Loop} from '@asmr-studio/contracts';
 
 export const roleNames: Record<Layer['role'], string> = {
   ambience: 'Ambience',
@@ -17,7 +17,9 @@ export function formatDuration(seconds: number): string {
     : minutes + ':' + remainder;
 }
 
-export function defaultLoop(durationSeconds: number): NonNullable<Layer['loop']> {
+export function defaultLoop(durationSeconds: number, preferred?:Loop): NonNullable<Layer['loop']> {
+  const prepared=preferred===undefined?null:loopSchema.safeParse(preferred);
+  if(prepared?.success&&prepared.data.endSeconds<=durationSeconds)return prepared.data;
   // Leave the same small decoder-tail margin used by automatic imports.
   return {
     startSeconds: 0,

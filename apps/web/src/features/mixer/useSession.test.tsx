@@ -17,8 +17,99 @@ beforeEach(()=>{
   localStorage.clear();
   window.history.replaceState(null,'','/');
   vi.spyOn(studioApi,'listAssets').mockResolvedValue([fixtureAsset()]);
+  vi.spyOn(studioApi,'listStarterSounds').mockResolvedValue([]);
   vi.spyOn(studioApi,'listScenes').mockResolvedValue([]);
   vi.spyOn(studioApi,'getScene').mockRejectedValue(new StudioApiError('NOT_FOUND',404,'Missing'));
+});
+
+describe('starter loop defaults',()=>{
+  const asset={...fixtureAsset(),durationSeconds:20};
+  const prepared={startSeconds:0,endSeconds:20,crossfadeSeconds:0};
+  const catalog=[{id:'prepared-rain',assetId:asset.id,preferredLoop:prepared}];
+
+  it('uses the installed sound defaults for a new layer and keeps narration non-looping',async()=>{
+    vi.mocked(studioApi.listAssets).mockResolvedValue([asset]);
+    vi.mocked(studioApi.listStarterSounds).mockResolvedValue(catalog);
+    const {result}=await ready();
+    act(()=>result.current.addAsset(asset,'ambience'));
+    expect(result.current.scene.layers[0]?.loop).toEqual(prepared);
+    act(()=>result.current.addAsset(asset,'narration'));
+    expect(result.current.scene.layers[1]?.loop).toBeNull();
+  });
+
+  it('loads existing media when the optional catalog fails and uses ordinary import defaults',async()=>{
+    vi.mocked(studioApi.listAssets).mockResolvedValue([asset]);
+    vi.mocked(studioApi.listStarterSounds).mockRejectedValue(new Error('Catalog unavailable'));
+    const {result}=await ready();
+    expect(result.current.assets).toEqual([asset]);
+    act(()=>result.current.addAsset(asset,'ambience'));
+    expect(result.current.scene.layers[0]?.loop).toEqual({startSeconds:0,endSeconds:19.975,crossfadeSeconds:.02});
+  });
+
+  it('refreshes defaults before installation resolves without changing an edited layer',async()=>{
+    vi.mocked(studioApi.listAssets).mockResolvedValue([asset]);
+    const {result}=await ready();
+    act(()=>result.current.addAsset(asset,'ambience'));
+    const first=result.current.scene.layers[0]!;
+    const edited={startSeconds:2,endSeconds:12,crossfadeSeconds:.25};
+    act(()=>result.current.edit({type:'setLayerLoop',layerId:first.id,loop:edited}));
+    const original=result.current.scene;
+    const version=result.current.getStateVersion();
+    vi.spyOn(studioApi,'installStarterSounds').mockResolvedValue([asset]);
+    vi.mocked(studioApi.listStarterSounds).mockResolvedValue(catalog);
+    await act(async()=>{
+      await result.current.installStarterSounds();
+      expect(result.current.getScene()).toEqual(original);
+      expect(result.current.getStateVersion()).toBe(version);
+      // The ref is ready even before React commits the catalog's state update.
+      result.current.addAsset(asset,'ambience');
+    });
+    expect(result.current.scene.layers.map(layer=>layer.loop)).toEqual([edited,prepared]);
+    expect(result.current.preferredLoops.get(asset.id)).toEqual(prepared);
+  });
+
+  it('exposes installed sounds only after their defaults arrive and retains a concurrent import',async()=>{
+    const {result}=await ready();
+    const pending=deferred<Awaited<ReturnType<typeof studioApi.listStarterSounds>>>();
+    const installed={...asset,id:'new-prepared'};
+    vi.spyOn(studioApi,'installStarterSounds').mockResolvedValue([installed]);
+    vi.mocked(studioApi.listStarterSounds).mockReturnValue(pending.promise);
+    const imported={...fixtureAsset(),id:'own-recording'};
+    vi.spyOn(studioApi,'importAsset').mockResolvedValue(imported);
+    let request!:Promise<void>;
+    act(()=>{request=result.current.installStarterSounds();});
+    await waitFor(()=>expect(studioApi.listStarterSounds).toHaveBeenCalledTimes(2));
+    expect(result.current.assets.map(item=>item.id)).not.toContain(installed.id);
+    await act(async()=>result.current.importFile(new File(['audio'],'own.wav'),{
+      displayName:imported.displayName,roles:imported.roles,provenance:imported.provenance,rights:imported.rights,
+    }));
+    await act(async()=>{
+      pending.resolve([{id:'prepared-rain',assetId:installed.id,preferredLoop:prepared}]);
+      await request;
+    });
+    expect(result.current.assets.map(item=>item.id)).toEqual(expect.arrayContaining([installed.id,imported.id]));
+    act(()=>result.current.addAsset(installed,'ambience'));
+    expect(result.current.scene.layers[0]?.loop).toEqual(prepared);
+  });
+
+  it('preserves saved custom loops when opening a mix refreshes the catalog',async()=>{
+    const saved=parseScene({...fixtureScene(),layers:[{...fixtureScene().layers[0],loop:{startSeconds:1,endSeconds:9,crossfadeSeconds:.1}}]});
+    const {result}=await ready();
+    vi.mocked(studioApi.listAssets).mockResolvedValue([asset]);
+    vi.mocked(studioApi.getScene).mockResolvedValue(saved);
+    vi.mocked(studioApi.listStarterSounds).mockResolvedValue(catalog);
+    await act(async()=>result.current.openScene(saved.id));
+    expect(result.current.scene).toEqual(saved);
+    expect(result.current.dirty).toBe(false);
+    expect(result.current.preferredLoops.get(asset.id)).toEqual(prepared);
+  });
+
+  it('ignores a default extending beyond the actual installed recording',async()=>{
+    vi.mocked(studioApi.listStarterSounds).mockResolvedValue(catalog);
+    const {result}=await ready();
+    act(()=>result.current.addAsset(fixtureAsset(),'ambience'));
+    expect(result.current.scene.layers[0]?.loop).toEqual({startSeconds:0,endSeconds:1.975,crossfadeSeconds:.02});
+  });
 });
 afterEach(()=>vi.restoreAllMocks());
 
