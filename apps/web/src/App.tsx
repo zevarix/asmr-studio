@@ -393,7 +393,7 @@ export function App(){
       onStart={start} onPause={pause} onStop={stop} onRestart={()=>{stop();start();}}/>
     :<MixerView scene={session.scene} playback={shownPlayback} outputMeterSource={outputMeterSource}
       loopAudioService={loopAudioService}
-      assets={session.assets} libraryTools={<AssetImportForm onImport={session.importFile}/>}
+      assets={session.assets} preferredLoops={session.preferredLoops} libraryTools={<AssetImportForm onImport={session.importFile}/>}
       sessionTools={sessionTools} onAddAsset={addAsset} canStart={!missing && session.status!=='loading'}
       exportTools={exportTools}
       onRename={session.rename} onInstallStarterSounds={session.installStarterSounds} previewStopToken={previewStopToken}

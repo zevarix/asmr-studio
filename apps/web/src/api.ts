@@ -1,4 +1,10 @@
-import {parseScene,parseCapturedMix,parseAssetRecord,parseExportJob,type AssetImportMetadata,type AssetRecord,type CapturedMix,type Scene,type ExportJob,type ExportRequest} from '@asmr-studio/contracts';
+import {parseScene,parseCapturedMix,parseAssetRecord,parseExportJob,loopSchema,type AssetImportMetadata,type AssetRecord,type CapturedMix,type Scene,type ExportJob,type ExportRequest,type Loop} from '@asmr-studio/contracts';
+
+export interface StarterLoopDefault {
+  id:string;
+  assetId:string|null;
+  preferredLoop?:Loop;
+}
 
 export interface SceneSummary {
   id: string;
@@ -40,6 +46,28 @@ export class StudioApi {
     });
     if(!Array.isArray(value)) throw new StudioApiError('INVALID_RESPONSE',0,'The starter library response was invalid');
     return value.map(parseAssetRecord);
+  }
+  async listStarterSounds():Promise<StarterLoopDefault[]> {
+    const controller=new AbortController();
+    // Optional defaults must not leave loading or a completed install waiting indefinitely.
+    const timeout=setTimeout(()=>controller.abort(),5000);
+    try {
+      const value=await this.request('/library',{signal:controller.signal});
+      if(!Array.isArray(value)) throw new StudioApiError('INVALID_RESPONSE',0,'The starter catalog response was invalid');
+      return value.map(item=>{
+        if(!item||typeof item!=='object'||typeof item.id!=='string'||!item.id.trim()||
+          (item.assetId!==null&&(typeof item.assetId!=='string'||!item.assetId.trim()))) {
+          throw new StudioApiError('INVALID_RESPONSE',0,'A starter sound identity was invalid');
+        }
+        const result:StarterLoopDefault={id:item.id,assetId:item.assetId};
+        if(item.preferredLoop!==undefined){
+          const loop=loopSchema.safeParse(item.preferredLoop);
+          if(!loop.success)throw new StudioApiError('INVALID_RESPONSE',0,'A starter loop was invalid');
+          result.preferredLoop=loop.data;
+        }
+        return result;
+      });
+    } finally {clearTimeout(timeout);}
   }
   async listScenes():Promise<SceneSummary[]> {
     const value=await this.request('/scenes');

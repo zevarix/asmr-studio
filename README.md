@@ -9,8 +9,9 @@ and screen-off playback still need device validation.
 
 ## What works
 
-Start with sixteen openly licensed recordings or import your own audio. Search
-the sound library, preview a recording, and toggle sounds into a layered mix.
+Start with nineteen sounds: sixteen openly licensed recordings and three
+prepared Earshot ambiences. You can also import your own audio. Search the sound
+library, preview a sound, and toggle sounds into a layered mix.
 Each layer supports volume, stereo position, mute, solo, and adjustable looping.
 Adding and removing sounds while listening preserves the other layers and the
 playback clock. Name, save, copy, and reopen sessions from the app.
@@ -114,6 +115,9 @@ Choose **Add starter sounds**, select a few sounds, and press **Start listening*
 The starter collection contains rain, fireplace, wind, waves, birds, a stream,
 crickets, mic foam brushing, cardboard and glass tapping, book pages, keyboard
 typing, windscreen rubbing, makeup brushing, slow fabric petting, and hand rubbing.
+It also includes **Window rain**, **Rain on wood**, and **Small brook**, with
+prepared loop settings that apply when you add them to a mix. These three sounds
+download as ready-to-use WAVs; Python and Earshot are not required.
 Downloads are verified and cached locally; installed sounds play offline.
 The first installation needs an internet connection. You can also prepare the
 same library before starting the server (macOS/Linux syntax):
@@ -125,9 +129,9 @@ ASMR_DATA_DIR="$HOME/.local/share/asmr-studio" npm run sounds:install
 In PowerShell, set `$env:ASMR_DATA_DIR` as above and run `npm run sounds:install`.
 
 See [sound credits and preparation details](docs/sound-library.md) for every
-recording's source and license. The original downloaded bytes are preserved;
-the app uses short playback excerpts with editable loop crossfades.
-Run the installer again after updating the app to add new starter recordings.
+sound's source and permission. The original downloaded bytes are preserved;
+the app uses short playback excerpts or prepared WAVs with editable loop settings.
+Run the installer again after updating the app to add new starter sounds.
 Existing recordings, saved sessions, and earlier credits are preserved.
 
 Use **Import your audio** for additional recordings. Keep recordings and
@@ -146,8 +150,10 @@ npm run test:restart
 `npm test` builds the app before running unit and integration tests.
 Browser tests use Chromium and generated audio fixtures. The restart test
 checks that a new server process reopens saved sessions and the original audio
-bytes. These checks do not establish sound quality or iPhone/Safari screen-off
-playback; those still need listening and device testing.
+bytes. Automated checks establish technical behavior rather than subjective
+sound quality. Desktop listening acceptance is complete for the three Earshot
+water sounds; iPhone/Safari background and screen-off playback remain a separate
+device-validation task.
 
 ## Code
 
@@ -166,9 +172,9 @@ control styling, responsive layouts, and accessibility.
 ## License and sound credits
 
 ASMR Studio's original code is licensed under the [MIT License](LICENSE).
-Third-party software and recordings retain their own licenses; the code license
+Third-party software and audio retain their own permissions; the code license
 does not relicense audio. See [third-party notices](THIRD_PARTY_NOTICES.md) and
-[the recording credits](docs/sound-library.md).
+[the sound credits](docs/sound-library.md).
 
 If you share a rendered mix, download **Recipe & credits** and include the
 attribution, license links, and change notices required by its recordings.

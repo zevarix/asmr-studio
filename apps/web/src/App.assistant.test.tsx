@@ -37,6 +37,7 @@ const command=(requestId:string,action:AssistantPendingCommand['action']):Assist
 beforeEach(()=>{
   localStorage.clear();window.history.replaceState(null,'','/?scene='+fixtureScene().id);
   vi.spyOn(studioApi,'listAssets').mockResolvedValue([fixtureAsset(),{...fixtureAsset(),id:'asset-voice'}]);
+  vi.spyOn(studioApi,'listStarterSounds').mockResolvedValue([]);
   vi.spyOn(studioApi,'listScenes').mockResolvedValue([]);
   vi.spyOn(studioApi,'getScene').mockResolvedValue(fixtureScene());
   vi.stubGlobal('AudioContext',class {state='running';async resume(){}async close(){this.state='closed';}});

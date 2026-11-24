@@ -3,17 +3,25 @@
 ASMR Studio's original application code is covered by the [MIT License](LICENSE).
 Third-party dependencies retain their own licenses.
 
-## Recordings
+## Sounds
 
-Starter recordings are downloaded separately into local application storage.
-Their licenses are independent of the application license. See
+Starter audio is downloaded separately into local application storage.
+Its permissions are independent of the application license. See
 [the sound library](docs/sound-library.md#recording-credits-and-licenses) for each
-recording's creator, source, license, and processing changes.
+sound's creator, source, permission, and processing changes.
 
 The starter rain and ocean recordings use CC BY 4.0; sharing a mix containing
 them requires the relevant attribution, license links, and change notices.
 **Recipe & credits** in the export panel provides the captured source declarations.
 Personal imports retain their original permissions.
+
+Window rain, Rain on wood, and Small brook were rendered with Earshot at revision
+`7a7f7c5c70d4a763a1eca4b3666af7c77e313f97`. Earshot's code is MIT-licensed; the
+studio distributes only these prepared audio renders, under Earshot's separate
+output permission. The two recording-derived sounds retain their original CC0
+source credits. See [the preparation record](docs/earshot-water-sounds.md) for
+the pinned permission statement and complete provenance. Earshot and its Python
+dependencies are not runtime dependencies of ASMR Studio.
 
 ## Model Context Protocol TypeScript SDK
 

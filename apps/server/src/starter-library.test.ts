@@ -4,7 +4,7 @@ import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { createEmptyScene } from '@asmr-studio/contracts';
+import { createEmptyScene, type AssetImportMetadata } from '@asmr-studio/contracts';
 import { AssetStore } from './assets.js';
 import { openStore } from './store.js';
 import { starterCatalog, type StarterSound } from './starter-catalog.js';
@@ -23,6 +23,16 @@ function fixture(id='rain',frames=4410):{sound:StarterSound;bytes:Uint8Array} {
   const bytes = wavFixture({frames,sampleRate:44100});
   return {bytes,sound:{...structuredClone(starterCatalog[0]!),id,title:`Recording ${id}`,filename:`${id}.wav`,downloadUrl:`https://example.test/${id}.wav`,bytes:bytes.byteLength,sha256:createHash('sha256').update(bytes).digest('hex'),durationSeconds:frames/44100,sampleRate:44100,excerpt:{startSeconds:0,durationSeconds:frames/44100}}};
 }
+function preparedFixture():{sound:StarterSound;bytes:Uint8Array} {
+  const source=fixture('window-rain');
+  return {...source,sound:{...source.sound,preparation:'preserve-wav',recordingKind:'procedural-synthesis',
+    downloadUrl:'https://github.com/zevarix/asmr-studio/releases/download/sounds-earshot-water-v1/window-rain.wav',
+    preparationNotes:'Fixed attenuation already included.',preferredLoop:{startSeconds:0,endSeconds:source.sound.durationSeconds,crossfadeSeconds:0}}};
+}
+async function* content(bytes:Uint8Array){yield bytes;}
+const licensedImport:AssetImportMetadata={displayName:'My imported water loop',roles:['ambience'],
+  provenance:{kind:'licensed',source:'Previously imported Earshot output, with its source credits.'},
+  rights:{privateUse:'permitted',redistribution:'permitted'}};
 function fresh() {
   const root=mkdtempSync(join(tmpdir(),'asmr-starters-'));roots.push(root);
   return {root,...openAssets(root)};
@@ -190,5 +200,121 @@ describe('fixed starter library installation',()=>{
     }
     for(const gainDb of [-60,60])expect(()=>new StarterLibrary({root,assets,catalog:[{...source.sound,gainDb}]})).not.toThrow();
     expect(assets.list()).toEqual([]);
+  });
+});
+
+describe('prepared starter loops',()=>{
+  it('publishes three prepared water entries with their distinct loop defaults alongside the original recordings',()=>{
+    const {root,assets}=fresh();const library=new StarterLibrary({root,assets});
+    const catalog=library.catalog();expect(catalog).toHaveLength(19);
+    expect(catalog.filter(sound=>sound.preparation==='preserve-wav').map(sound=>({id:sound.id,kind:sound.recordingKind,loop:sound.preferredLoop}))).toEqual([
+      {id:'window-rain',kind:'procedural-synthesis',loop:{startSeconds:0,endSeconds:20,crossfadeSeconds:0}},
+      {id:'rain-on-wood',kind:'recording-reconstruction',loop:{startSeconds:0,endSeconds:20,crossfadeSeconds:0.02}},
+      {id:'small-brook',kind:'recording-reconstruction',loop:{startSeconds:0,endSeconds:20,crossfadeSeconds:0.02}},
+    ]);
+    expect(catalog.slice(0,16).every(sound=>sound.preparation===undefined&&sound.preferredLoop===undefined)).toBe(true);
+  });
+  it('installs prepared WAV bytes unchanged and reuses them without another preparation or download',async()=>{
+    const {root,assets}=fresh();const source=preparedFixture();let fetches=0;
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async()=>{fetches++;return response(source.bytes);},
+      prepare:async()=>{throw new Error('Prepared WAVs must bypass conversion');}});
+    const [record]=await library.install();expect(record!.sha256).toBe(source.sound.sha256);
+    expect(record!.durationSeconds).toBe(source.sound.durationSeconds);expect(record!.sampleRate).toBe(44100);
+    const chunks:Buffer[]=[];for await(const chunk of assets.openContent(record!.id).stream)chunks.push(Buffer.from(chunk));
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from(source.bytes));
+    expect(record!.provenance.source).toContain('installed byte-for-byte');
+    expect(record!.provenance.source).toContain('Fixed attenuation already included');
+    expect(await library.install()).toEqual([record]);expect(fetches).toBe(1);expect(assets.list()).toHaveLength(1);
+    expect(library.catalog()[0]).toMatchObject({assetId:record!.id,preferredLoop:source.sound.preferredLoop});
+    expect(await readFile(join(root,'starters','originals',source.sound.filename))).toEqual(Buffer.from(source.bytes));
+    expect(readdirSync(join(root,'starters','tmp'))).toEqual([]);
+  });
+  it('recognizes an earlier licensed import by exact content without changing its name, provenance or saved mix',async()=>{
+    const {root,assets,store}=fresh();const source=preparedFixture();
+    const imported=await assets.ingest(content(source.bytes),licensedImport,'audio/wav');
+    const scene=store.scenes.create({...createEmptyScene('existing-water','My existing mix'),layers:[fixtureLayer({assetId:imported.id,loop:{startSeconds:0.01,endSeconds:0.08,crossfadeSeconds:0.005}})]});
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async()=>{throw new Error('Recognized imports must not download');}});
+    expect(library.catalog()[0]?.assetId).toBe(imported.id);
+    expect(await library.install()).toEqual([imported]);expect(assets.list()).toEqual([imported]);
+    expect(store.scenes.get(scene.id)).toEqual(scene);
+    expect(imported.displayName).not.toBe(source.sound.title);
+    expect(library.catalog()[0]?.preferredLoop).toEqual(source.sound.preferredLoop);
+  });
+  it.each(['different-bytes','unknown-rights','wrong-role','unlicensed'] as const)('does not adopt an existing import with %s',async mismatch=>{
+    const {root,assets}=fresh();const source=preparedFixture();const bytes=source.bytes.slice();
+    const metadata=structuredClone(licensedImport);metadata.displayName=source.sound.title;
+    if(mismatch==='different-bytes')bytes[bytes.length-1]=bytes[bytes.length-1]!^1;
+    if(mismatch==='unknown-rights')metadata.rights.redistribution='unknown';
+    if(mismatch==='wrong-role')metadata.roles=['texture'];
+    if(mismatch==='unlicensed')metadata.provenance={kind:'original',source:null};
+    const imported=await assets.ingest(content(bytes),metadata,'audio/wav');
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async()=>response(source.bytes)});
+    expect(library.catalog()[0]?.assetId).toBeNull();
+    const [installed]=await library.install();expect(installed!.id).not.toBe(imported.id);
+    expect(assets.get(imported.id)).toEqual(imported);expect(assets.list()).toHaveLength(2);
+  });
+  it('rejects invalid preferred loops and requests to process prepared files again',()=>{
+    const {root,assets}=fresh();const source=preparedFixture();
+    for(const preferredLoop of [null,{startSeconds:-1,endSeconds:0.1,crossfadeSeconds:0},
+      {startSeconds:0,endSeconds:0.1,crossfadeSeconds:0.06},{startSeconds:0,endSeconds:0.2,crossfadeSeconds:0},
+      {startSeconds:0,endSeconds:NaN,crossfadeSeconds:0}]){
+      expect(()=>new StarterLibrary({root,assets,catalog:[{...source.sound,preferredLoop} as StarterSound]})).toThrow('Invalid starter preferred loop');
+    }
+    for(const changes of [{gainDb:0},{sampleRate:48000},{excerpt:{startSeconds:0.01,durationSeconds:0.09}},
+      {filename:'water.flac'},{bytes:source.sound.bytes+2},{preparation:'convert'}]){
+      expect(()=>new StarterLibrary({root,assets,catalog:[{...source.sound,...changes,preferredLoop:{startSeconds:0,endSeconds:0.05,crossfadeSeconds:0}} as StarterSound]})).toThrow('Prepared starter sounds require');
+    }
+  });
+  it('rejects a pinned prepared file with an unexpected PCM format before ingestion',async()=>{
+    const {root,assets}=fresh();const source=preparedFixture();const bytes=source.bytes.slice();
+    new DataView(bytes.buffer).setUint16(34,24,true);
+    const sound={...source.sound,sha256:createHash('sha256').update(bytes).digest('hex')};
+    const library=new StarterLibrary({root,assets,catalog:[sound],fetch:async()=>response(bytes)});
+    await expect(library.install()).rejects.toMatchObject({code:'STARTER_PREPARATION_FAILED'});
+    expect(assets.list()).toEqual([]);expect(readdirSync(join(root,'starters','tmp'))).toEqual([]);
+  });
+});
+
+describe('fixed release asset downloads',()=>{
+  const assetUrl='https://release-assets.githubusercontent.com/github-production-release-asset/example?signature=fixture';
+  it('follows one approved signed asset redirect using the same bounded transfer signal',async()=>{
+    const {root,assets}=fresh();const source=preparedFixture();const calls:Array<{url:string;options:RequestInit|undefined}>=[];
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async(input,options)=>{
+      calls.push({url:String(input),options});
+      return calls.length===1?new Response(null,{status:302,headers:{location:assetUrl}}):response(source.bytes);
+    }});
+    const [installed]=await library.install();expect(installed!.sha256).toBe(source.sound.sha256);
+    expect(calls.map(call=>[call.url,call.options?.redirect])).toEqual([[source.sound.downloadUrl,'manual'],[assetUrl,'error']]);
+    expect(calls[0]!.options?.signal).toBeInstanceOf(AbortSignal);
+    expect(calls[1]!.options?.signal).toBe(calls[0]!.options?.signal);
+  });
+  it.each([
+    'http://release-assets.githubusercontent.com/file.wav','https://example.test/file.wav',
+    'https://release-assets.githubusercontent.com.evil.test/file.wav','https://user:secret@release-assets.githubusercontent.com/file.wav',
+    'https://release-assets.githubusercontent.com:443/file.wav','https://release-assets.githubusercontent.com:444/file.wav',
+    'https://release-assets.githubusercontent.com/file.wav#fragment','/relative.wav',
+  ])('rejects an unapproved release redirect to %s',async location=>{
+    const {root,assets}=fresh();const source=preparedFixture();let calls=0;
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async()=>{calls++;return new Response(null,{status:302,headers:{location}});}});
+    await expect(library.install()).rejects.toMatchObject({code:'STARTER_DOWNLOAD_FAILED'});
+    expect(calls).toBe(1);expect(assets.list()).toEqual([]);expect(readdirSync(join(root,'starters','tmp'))).toEqual([]);
+  });
+  it('rejects a second redirect and retains redirect rejection for other fixed sources',async()=>{
+    const {root,assets}=fresh();const source=preparedFixture();let calls=0;
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async()=>{calls++;return new Response(null,{status:302,headers:{location:assetUrl}});}});
+    await expect(library.install()).rejects.toMatchObject({code:'STARTER_DOWNLOAD_FAILED'});expect(calls).toBe(2);
+    let mode:RequestRedirect|undefined;
+    const normal=fixture();const ordinary=new StarterLibrary({root,assets,catalog:[normal.sound],fetch:async(_input,options)=>{
+      mode=options?.redirect;return new Response(null,{status:302,headers:{location:assetUrl}});
+    }});
+    await expect(ordinary.install()).rejects.toMatchObject({code:'STARTER_DOWNLOAD_FAILED'});expect(mode).toBe('error');
+    expect(assets.list()).toEqual([]);
+  });
+  it('still verifies exact bytes after a permitted redirect',async()=>{
+    const {root,assets}=fresh();const source=preparedFixture();const corrupt=source.bytes.slice();corrupt[corrupt.length-1]=corrupt[corrupt.length-1]!^1;let calls=0;
+    const library=new StarterLibrary({root,assets,catalog:[source.sound],fetch:async()=>++calls===1?
+      new Response(null,{status:302,headers:{location:assetUrl}}):response(corrupt)});
+    await expect(library.install()).rejects.toMatchObject({code:'STARTER_SOURCE_INTEGRITY'});
+    expect(assets.list()).toEqual([]);expect(readdirSync(join(root,'starters','originals'))).toEqual([]);expect(readdirSync(join(root,'starters','tmp'))).toEqual([]);
   });
 });

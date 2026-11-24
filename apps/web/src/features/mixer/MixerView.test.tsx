@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { parseScene } from '@asmr-studio/contracts';
-import { fixtureLayer, fixtureScene } from '../../../../../tests/fixtures/scene.js';
+import { fixtureAsset, fixtureLayer, fixtureScene } from '../../../../../tests/fixtures/scene.js';
 import { MixerView } from './MixerView.js';
 import { App } from '../../App.js';
 import type { PlaybackSnapshot } from '@asmr-studio/audio-engine';
@@ -25,6 +25,16 @@ function configured() {
 }
 
 describe('accessible listening mixer', () => {
+  it('passes prepared loop defaults to the matching layer controls',()=>{
+    const props=configured();
+    const preferredLoop={startSeconds:0,endSeconds:2,crossfadeSeconds:0};
+    render(<MixerView {...props} playback={snapshot('ready')} assets={[fixtureAsset()]}
+      preferredLoops={new Map([[fixtureAsset().id,preferredLoop]])}/>);
+    const ambience=within(screen.getByRole('group',{name:'Ambience: ambience'}));
+    fireEvent.click(ambience.getByRole('checkbox',{name:'Loop'}));
+    expect(props.onCommand).toHaveBeenCalledExactlyOnceWith({type:'setLayerLoop',layerId:'ambience',loop:preferredLoop});
+  });
+
   it('provides an explicit Start listening action, never starting on mount', () => {
     const props = configured();
     render(<MixerView {...props} playback={snapshot('ready')} />);
