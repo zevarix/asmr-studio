@@ -1,7 +1,7 @@
 import {afterEach,describe,expect,it} from 'vitest';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -15,7 +15,7 @@ const roots:string[]=[];
 afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
 
 function workspace():string {
-  const root=mkdtempSync(join(tmpdir(),'asmr backup cli '));
+  const root=realpathSync(mkdtempSync(join(tmpdir(),'asmr backup cli ')));
   roots.push(root);
   return root;
 }
